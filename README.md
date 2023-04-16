@@ -1,1 +1,3 @@
 # ColorSeasonAnalyzer
+
+Our team, consisting of Aaron Ashery, Alexandra Long, and Tiffany McBrayer, is developing a program for personal color palette analysis for our Visual Interfaces project. With the rise in popularity of TikTok and other social media platforms, color analysis for personal style has gained renewed interest. Normally, individuals interested in this assessment would receive a consultation by a professional color analyst or read articles online that explain the best shades to wear for their features namely, eye color, hair color, and skin tone. By developing this program we could add some accessibility to the color analysis service as well as make the process more efficient. 
