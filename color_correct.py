@@ -1,8 +1,15 @@
 import numpy as np
 import cv2
 import glob
+import numpy.typing as npt
 
-def color_correct():
+def color_correct() -> None:
+    """This function is to color correct all original photos from the Chicago Face Database. This is mainly using the algorithm from
+    https://stackoverflow.com/questions/70876252/how-to-do-color-cast-removal-or-color-coverage-in-python on how to remove color cast
+    from photos. To remove color cast you must convert the image from BGR to HSV color space and then flip the hue channel
+    to its complement. Then you merge the new hue channel back with the original S and V channels and convert back to BGR. Then you get
+    the average color of that reconverted BGR image and make a new image with that average color. You blend the two images together 50-50
+    and normalize the photo."""
     count = 0
     for image in glob.glob("./ChicagoFaceDatabaseImages/*.jpg"):
         # resizing img to fit in window
