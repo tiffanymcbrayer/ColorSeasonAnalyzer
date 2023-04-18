@@ -1,0 +1,9 @@
+hair eyes img
+100 108 ./ChicagoFaceDatabaseImages\CFD-AF-200-228-N.jpg
+108 100 ./ChicagoFaceDatabaseImages\CFD-AF-201-060-N.jpg
+100 108 ./ChicagoFaceDatabaseImages\CFD-AF-202-122-N.jpg
+108 108 ./ChicagoFaceDatabaseImages\CFD-AF-203-077-N.jpg
+108 108 ./ChicagoFaceDatabaseImages\CFD-AF-204-067-N.jpg
+108 108 ./ChicagoFaceDatabaseImages\CFD-AF-205-155-N.jpg
+97 97 ./ChicagoFaceDatabaseImages\CFD-AF-206-079-N.jpg
+97 -1 ./ChicagoFaceDatabaseImages\CFD-AF-207-023-N.jpg
