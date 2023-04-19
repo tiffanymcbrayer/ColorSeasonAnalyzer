@@ -37,7 +37,9 @@ def detect_facial_landmarks(img_path):
         facial_features.append(rightEyeImage)
 
         # LIPS
-        lipsLandmarks = [48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67]
+        #lipsLandmarks = [48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59,60, 61, 62, 63, 64, 65, 66, 67]
+        lipsLandmarks = [48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59,]
+
         lipsImage = createMask(landmarks, lipsLandmarks, image)
         facial_features.append(lipsImage)
 
@@ -79,7 +81,7 @@ def createMask(landmarks, specific_landmarks, image, swatch = 0):
         leftMostY = landmarks.part(19).x
         rightMostY = landmarks.part(24).x
         bottom = min(landmarks.part(19).y,landmarks.part(24).y)
-        top = bottom-100 # tbd
+        top = bottom-60 # tbd
         foreheadPoints = np.concatenate((foreheadPoints, np.array([(leftMostY,bottom)])))
         foreheadPoints = np.concatenate((foreheadPoints, np.array([(rightMostY,bottom)])))
         foreheadPoints = np.concatenate((foreheadPoints, np.array([(rightMostY,top)])))
@@ -102,7 +104,56 @@ def createMask(landmarks, specific_landmarks, image, swatch = 0):
     # Apply mask to original image to get left eye image
     maskedImage = cv2.bitwise_and(image, image, mask=mask)
 
-    return maskedImage
+    #return maskedImage
+
+    # Crop the image to the masked part
+    x, y, w, h = cv2.boundingRect(mask)
+    croppedImage = maskedImage[y:y+h, x:x+w]
+    return croppedImage
+
+
+def under_tone(img):
+    # Convert RGB to LAB
+    img_lab = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
+    mask = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+
+    # Split into L, a, and b channels
+    L_channel, a_channel, b_channel = cv2.split(img_lab)
+
+    # Use mask to extract non-black pixels from a and b channels
+    a_values = a_channel[mask != 0]
+
+    # Calculate average a and b values
+    a_avg = np.mean(a_values)
+
+
+    return a_avg
+
+# Return the undertone using the 3 swatches - left cheek, right cheek, and forehead
+def total_under_tone(img_path):
+    total_under_tone_val = 0
+    f = detect_facial_landmarks(img_path)  
+    # 1.leftCheek, 2.rightCheek, 3.forehead
+    for i in range(0,3):
+        img = f[i+3]      
+        underTone = under_tone(img)
+        total_under_tone_val +=  underTone
+
+    avgUndertone = total_under_tone_val/3
+
+    # Threshold for cool, neutral, warm
+    if avgUndertone > 129:
+        print("Cool")
+    elif avgUndertone >= 128:
+        print("Neutral")
+    else:
+        print("Warm")
+    
+    return avgUndertone
+
+    
+
+
 
 
 
@@ -110,11 +161,32 @@ def createMask(landmarks, specific_landmarks, image, swatch = 0):
 img_path = "ChicagoFaceDatabaseImages/CFD-AF-202-122-N.jpg"
 facial_features = detect_facial_landmarks(img_path)
 
-featureNames = ["left eye", "right eye", "lips", "left cheek", "right cheek", "forehead"]
+"""
+a_value = total_under_tone(img_path)
+print(a_value)
 
+cv_img = cv2.imread(img_path)
+scale = 0.5
+resized_img = cv2.resize(cv_img, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
+hsv_img = cv2.cvtColor(resized_img, cv2.COLOR_BGR2HSV)
+# og resized img
+cv2.imshow("Resized Image", resized_img)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+"""
+
+
+
+'''
 counter = 0
 for featureImage in facial_features:
+    #if counter == 3:
+        #under_tone(featureNames[counter])
     cv2.imshow(featureNames[counter], featureImage)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
     counter+=1
+'''
+
+    
+
