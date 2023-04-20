@@ -178,57 +178,73 @@ def total_under_tone(img_path):
     
 def getHair(img_path):
     image = cv2.imread(img_path)
+
+    # Convert the image to grayscale
     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # Apply a median blur to reduce noise
     blurred_image = cv2.medianBlur(gray_image, 5)
 
-    threshold = 10  # Adjust this value depending on the hair color and background
-    new_value = 128  # This value will be assigned to detected hair pixels
-    
+    # Convert the grayscale image to a 3-channel image
+    blurred_image_3ch = cv2.cvtColor(blurred_image, cv2.COLOR_GRAY2BGR)
 
+    # Set the threshold and new_value
+    threshold = 1
+    new_value = (128, 128, 128)
+
+    # Find the seed point in the middle of the image at the top and apply the floodFill function
     middle_column = blurred_image.shape[1] // 2
-    starty = 0
     for y in range(blurred_image.shape[0]):
-        if blurred_image[y, middle_column] < new_value - threshold:
-            flood_fill(blurred_image, (middle_column, y), threshold, new_value)
-            starty = y
+        if blurred_image[y, middle_column] < new_value[0] - threshold:
+            seed_point = (middle_column, y)
+            mask = np.zeros((blurred_image_3ch.shape[0] + 2, blurred_image_3ch.shape[1] + 2), dtype=np.uint8)
+            lo_diff = (threshold,) * 3
+            up_diff = (threshold,) * 3
+            cv2.floodFill(blurred_image_3ch, mask, seed_point, new_value, lo_diff, up_diff, cv2.FLOODFILL_FIXED_RANGE)
             break
 
-    _, hair_mask = cv2.threshold(blurred_image, new_value - threshold, 255, cv2.THRESH_BINARY)
-    resized_hair_mask = cv2.resize(hair_mask, None, fx=.5, fy=.5, interpolation=cv2.INTER_AREA)
+    # Convert the 3-channel image back to a single channel image
+    blurred_image_filled = cv2.cvtColor(blurred_image_3ch, cv2.COLOR_BGR2GRAY)
+
+    # Set the y-coordinate limit
+    y_limit = 350
+
+    # Create a region of interest (ROI) above the y-coordinate limit
+    roi = blurred_image_filled[:y_limit, :]
+
+    # Create the hair mask using the ROI
+    _, hair_mask_roi = cv2.threshold(roi, new_value[0] - threshold, 255, cv2.THRESH_BINARY)
+
+    hair_mask_roi_inv = cv2.bitwise_not(hair_mask_roi)
+
+    # Create a full-size hair mask with the same dimensions as the original image
+    hair_mask = np.zeros_like(blurred_image_filled)
+    hair_mask[:y_limit, :] = hair_mask_roi_inv
+
+    # hair_mask_inv = cv2.bitwise_not(hair_mask)
+
+    # Create the masked image
     masked_image = cv2.bitwise_and(image, image, mask=hair_mask)
-    resized_masked_image = cv2.resize(masked_image, None, fx=.5, fy=.5, interpolation=cv2.INTER_AREA)
+    # Compute the average pixel value of the detected hair region in the color image
+    average_hair_value_color = cv2.mean(image, mask=hair_mask)
 
-    endy = 0
-    width = 50
-    height = 10
-    # hair_swatch = np.zeros((image.shape))
-    count = 0
-    for i in range(blurred_image.shape[0]):
-        # print(hair_mask[i+starty, middle_column])
-        # print(image[i+starty,middle_column,:])
-        # hair_swatch[i + starty,middle_column-width:middle_column+width,:] = image[i + starty,middle_column-width:middle_column+width,:]
-        print(hair_mask[i+starty,middle_column])
-        if hair_mask[i + starty,middle_column] == 255:
-            count += 1
-            if count == 50:
-                endy = i
-                break
-
-    hair_swatch = image[starty+height:endy-height,middle_column-width:middle_column+width,:]
-
-    cv2.rectangle(image,(middle_column-width,starty+height),(middle_column+width,endy-height),(255,0,0),10)
     resized_image = cv2.resize(image, None, fx=.25, fy=.25, interpolation=cv2.INTER_AREA)
     
+    resized_hair_mask = cv2.resize(hair_mask, None, fx=.25, fy=.25, interpolation=cv2.INTER_AREA)
+    # masked_image = cv2.bitwise_and(image, image, mask=hair_mask)
+    resized_masked_image = cv2.resize(masked_image, None, fx=.25, fy=.25, interpolation=cv2.INTER_AREA)
+
+
     cv2.imshow('Original Image', resized_image)
-    #cv2.imshow('Hair Mask', resized_hair_mask)
-    # cv2.imshow('Masked Image', resized_masked_image)
+    # cv2.imshow('Hair Mask', resized_hair_mask)
+    cv2.imshow('Masked Image', resized_masked_image)
     # resized_hair_swatch = cv2.resize(hair_swatch, None, fx=.25, fy=.25, interpolation=cv2.INTER_AREA)
-    cv2.imshow('Hair Swatch', hair_swatch)
+    # cv2.imshow('Hair Swatch', hair_swatch)
 
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-    return hair_swatch
+    return average_hair_value_color
 
 def flood_fill(image, seed_point, threshold, new_value):
     h, w = image.shape
@@ -253,7 +269,7 @@ def flood_fill(image, seed_point, threshold, new_value):
 
 
 # # TEST THE FUNCTION 1
-# img_path = "ChicagoFaceDatabaseImages/CFD-AF-202-122-N.jpg"
+img_path = "ChicagoFaceDatabaseImages/CFD-AF-202-122-N.jpg"
 # facial_features = detect_facial_landmarks(img_path)
 
 """
@@ -286,6 +302,6 @@ for featureImage in facial_features:
     
 
 
-# TEST FOR IRIS DETECTION
-for image in glob.glob("./ChicagoFaceDatabaseImages/*.jpg"):
-    detect_facial_landmarks(image)
+# # TEST FOR IRIS DETECTION
+# for image in glob.glob("./ChicagoFaceDatabaseImages/*.jpg"):
+#     detect_facial_landmarks(image)
