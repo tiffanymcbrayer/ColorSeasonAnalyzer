@@ -2,6 +2,7 @@ import dlib
 import cv2
 import sys
 import numpy as np
+import glob
 
 
 def detect_facial_landmarks(img_path):
@@ -31,6 +32,7 @@ def detect_facial_landmarks(img_path):
         # EYES
         leftEyeLandmarks = [36, 37, 38, 39, 40, 41]
         leftEyeImage = createMask(landmarks, leftEyeLandmarks, image)
+        find_iris(leftEyeImage)
         facial_features.append(leftEyeImage)
         rightEyeLandmarks = [42, 43, 44, 45, 46, 47]
         rightEyeImage = createMask(landmarks, rightEyeLandmarks, image)
@@ -56,9 +58,6 @@ def detect_facial_landmarks(img_path):
         facial_features.append(foreheadImage)
 
     return facial_features
-
-
-
 
 def createMask(landmarks, specific_landmarks, image, swatch = 0):
     new_point = None
@@ -111,7 +110,32 @@ def createMask(landmarks, specific_landmarks, image, swatch = 0):
     croppedImage = maskedImage[y:y+h, x:x+w]
     return croppedImage
 
+def find_iris(eyeMask):
+    gray_eyeMask = cv2.cvtColor(eyeMask, cv2.COLOR_BGR2GRAY)
+    
+    _, thresh = cv2.threshold(gray_eyeMask, 100, 255, cv2.THRESH_BINARY)
 
+    contours, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    max_contour = max(contours, key=cv2.contourArea)
+
+    # Get bounding box of contour
+    x, y, w, h = cv2.boundingRect(max_contour)
+    y_mod = round(y + (h/2))
+    x_mod = round(x + (w/3))
+    # Modify y-coordinate of top-left corner of bounding box
+    # y = max(0, y - 20)
+
+    # Modify height of bounding box
+    # h += 20
+
+    # Draw rectangle on image
+    cv2.rectangle(eyeMask, (x_mod, y_mod), (round(x_mod + (w/3)), round(y_mod + (h/5))), (0, 0, 255), 1)
+        # Draw contours on original image
+    # cv2.drawContours(eyeMask, contours, -1, (0, 255, 0), 2)
+    cv2.imshow("eye", eyeMask)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    
 def under_tone(img):
     # Convert RGB to LAB
     img_lab = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
@@ -157,9 +181,9 @@ def total_under_tone(img_path):
 
 
 
-# TEST THE FUNCTION 
-img_path = "ChicagoFaceDatabaseImages/CFD-AF-202-122-N.jpg"
-facial_features = detect_facial_landmarks(img_path)
+# # TEST THE FUNCTION 1
+# img_path = "ChicagoFaceDatabaseImages/CFD-AF-202-122-N.jpg"
+# facial_features = detect_facial_landmarks(img_path)
 
 """
 a_value = total_under_tone(img_path)
@@ -190,3 +214,7 @@ for featureImage in facial_features:
 
     
 
+
+# TEST FOR IRIS DETECTION
+for image in glob.glob("./ChicagoFaceDatabaseImages/*.jpg"):
+    detect_facial_landmarks(image)
