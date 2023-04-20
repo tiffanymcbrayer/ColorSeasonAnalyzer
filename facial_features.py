@@ -32,7 +32,7 @@ def detect_facial_landmarks(img_path):
         # EYES
         leftEyeLandmarks = [36, 37, 38, 39, 40, 41]
         leftEyeImage = createMask(landmarks, leftEyeLandmarks, image)
-        find_iris(leftEyeImage)
+        eye_color = find_iris(leftEyeImage)
         facial_features.append(leftEyeImage)
         rightEyeLandmarks = [42, 43, 44, 45, 46, 47]
         rightEyeImage = createMask(landmarks, rightEyeLandmarks, image)
@@ -113,28 +113,30 @@ def createMask(landmarks, specific_landmarks, image, swatch = 0):
 def find_iris(eyeMask):
     gray_eyeMask = cv2.cvtColor(eyeMask, cv2.COLOR_BGR2GRAY)
     
-    _, thresh = cv2.threshold(gray_eyeMask, 100, 255, cv2.THRESH_BINARY)
-
-    contours, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    max_contour = max(contours, key=cv2.contourArea)
-
-    # Get bounding box of contour
-    x, y, w, h = cv2.boundingRect(max_contour)
-    y_mod = round(y + (h/2))
-    x_mod = round(x + (w/3))
-    # Modify y-coordinate of top-left corner of bounding box
-    # y = max(0, y - 20)
-
-    # Modify height of bounding box
-    # h += 20
-
+    # Get bounding box of eyeMask
+    x, y, w, h = cv2.boundingRect(gray_eyeMask)
+    
+    # Make iris section bounding box
+    y_mod = round(y + (3*(h/6)))
+    x_mod = round(x + (1.5*(w/4)))
+    
+    x_diff = round(x_mod + (w/4))
+    y_diff = round(y_mod + (h/6))
+    
+    # Get iris section from eyeMask
+    irisMask = eyeMask[y_mod:y_diff, x_mod:x_diff, :]
+    
+    # Get most prominent color in iris using color histogram
+    hist = cv2.calcHist([irisMask], [0,1,2], None, [256,256,256], [0,256,0,256,0,256])
+    hist_flatten = hist.flatten()
+    max_color_ind = np.argmax(hist_flatten)
+    bgr = np.unravel_index(max_color_ind, hist.shape)
+    eye_color = (bgr[0], bgr[1], bgr[2])
+    
     # Draw rectangle on image
-    cv2.rectangle(eyeMask, (x_mod, y_mod), (round(x_mod + (w/3)), round(y_mod + (h/5))), (0, 0, 255), 1)
-        # Draw contours on original image
-    # cv2.drawContours(eyeMask, contours, -1, (0, 255, 0), 2)
-    cv2.imshow("eye", eyeMask)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # cv2.rectangle(eyeMask, (x_mod, y_mod), (round(x_mod + (w/4)), round(y_mod + (h/6))), (0, 0, 255), 1)
+    
+    return eye_color
     
 def under_tone(img):
     # Convert RGB to LAB
