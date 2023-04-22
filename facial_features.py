@@ -117,11 +117,11 @@ def find_iris(eyeMask):
     x, y, w, h = cv2.boundingRect(gray_eyeMask)
     
     # Make iris section bounding box
-    y_mod = round(y + (3*(h/6)))
+    y_mod = round(y + (3.25*(h/6)))
     x_mod = round(x + (1.5*(w/4)))
     
     x_diff = round(x_mod + (w/4))
-    y_diff = round(y_mod + (h/6))
+    y_diff = round(y_mod + .75*(h/6))
     
     # Get iris section from eyeMask
     irisMask = eyeMask[y_mod:y_diff, x_mod:x_diff, :]
@@ -134,8 +134,10 @@ def find_iris(eyeMask):
     eye_color = (bgr[0], bgr[1], bgr[2])
     
     # Draw rectangle on image
-    # cv2.rectangle(eyeMask, (x_mod, y_mod), (round(x_mod + (w/4)), round(y_mod + (h/6))), (0, 0, 255), 1)
-    
+    # cv2.rectangle(eyeMask, (x_mod, y_mod), (round(x_diff), round(y_diff)), (0, 0, 255), 1)
+    # cv2.imshow("eye",eyeMask)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
     return eye_color
     
 def under_tone(img):
@@ -305,5 +307,5 @@ for featureImage in facial_features:
 
 
 # # TEST FOR IRIS DETECTION
-# for image in glob.glob("./ChicagoFaceDatabaseImages/*.jpg"):
-#     detect_facial_landmarks(image)
+for image in glob.glob("./ChicagoFaceDatabaseImages/*.jpg"):
+    detect_facial_landmarks(image)
