@@ -3,6 +3,8 @@ import cv2
 import sys
 import numpy as np
 import glob
+from PIL import Image
+
 
 
 def detect_facial_landmarks(img_path):
@@ -32,8 +34,9 @@ def detect_facial_landmarks(img_path):
         # EYES
         leftEyeLandmarks = [36, 37, 38, 39, 40, 41]
         leftEyeImage = createMask(landmarks, leftEyeLandmarks, image)
-        eye_color = find_iris(leftEyeImage)
+        #eye_color = find_iris(leftEyeImage)
         facial_features.append(leftEyeImage)
+
         rightEyeLandmarks = [42, 43, 44, 45, 46, 47]
         rightEyeImage = createMask(landmarks, rightEyeLandmarks, image)
         facial_features.append(rightEyeImage)
@@ -125,6 +128,10 @@ def find_iris(eyeMask):
     
     # Get iris section from eyeMask
     irisMask = eyeMask[y_mod:y_diff, x_mod:x_diff, :]
+
+    # Convert irisMask to Lab color space
+    lVal, aVal, bVal = getLabColorSpace(irisMask)
+    #print("L: " + str(lVal) + " a: " + str(aVal) + " b: " + str(bVal))
     
     # Get most prominent color in iris using color histogram
     hist = cv2.calcHist([irisMask], [0,1,2], None, [256,256,256], [0,256,0,256,0,256])
@@ -136,7 +143,20 @@ def find_iris(eyeMask):
     # Draw rectangle on image
     # cv2.rectangle(eyeMask, (x_mod, y_mod), (round(x_mod + (w/4)), round(y_mod + (h/6))), (0, 0, 255), 1)
     
-    return eye_color
+    return (eye_color, lVal, aVal, bVal, irisMask)
+    #return eye_color
+
+def getLabColorSpace(mask):
+    # Convert irisMask to Lab color space
+    lab_mask = cv2.cvtColor(mask, cv2.COLOR_BGR2LAB)
+
+    # Split into L, a, and b channels
+    L_channel, a_channel, b_channel = cv2.split(lab_mask)
+    lValue = np.mean(L_channel)
+    aValue = np.mean(a_channel)
+    bValue = np.mean(b_channel)
+
+    return (lValue, aValue, bValue)
     
 def under_tone(img):
     # Convert RGB to LAB
@@ -156,6 +176,7 @@ def under_tone(img):
     return a_avg
 
 # Return the undertone using the 3 swatches - left cheek, right cheek, and forehead
+# higher a* value would indicate a cooler or pinker undertone, while a lower a* value would indicate a warmer or yellower undertone.
 def total_under_tone(img_path):
     total_under_tone_val = 0
     f = detect_facial_landmarks(img_path)  
@@ -227,6 +248,7 @@ def getHair(img_path):
 
     # Create the masked image
     masked_image = cv2.bitwise_and(image, image, mask=hair_mask)
+    lVal, aVal, bVal = getLabColorSpace(masked_image)
     # Compute the average pixel value of the detected hair region in the color image
     average_hair_value_color = cv2.mean(image, mask=hair_mask)
 
@@ -237,16 +259,17 @@ def getHair(img_path):
     resized_masked_image = cv2.resize(masked_image, None, fx=.25, fy=.25, interpolation=cv2.INTER_AREA)
 
 
-    cv2.imshow('Original Image', resized_image)
-    # cv2.imshow('Hair Mask', resized_hair_mask)
-    cv2.imshow('Masked Image', resized_masked_image)
-    # resized_hair_swatch = cv2.resize(hair_swatch, None, fx=.25, fy=.25, interpolation=cv2.INTER_AREA)
-    # cv2.imshow('Hair Swatch', hair_swatch)
+    # cv2.imshow('Original Image', resized_image)
+    # # cv2.imshow('Hair Mask', resized_hair_mask)
+    # cv2.imshow('Masked Image', resized_masked_image)
+    # # resized_hair_swatch = cv2.resize(hair_swatch, None, fx=.25, fy=.25, interpolation=cv2.INTER_AREA)
+    # # cv2.imshow('Hair Swatch', hair_swatch)
 
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
-    return average_hair_value_color
+    #return average_hair_value_color
+    return (average_hair_value_color, lVal, aVal, bVal,resized_masked_image)
 
 def flood_fill(image, seed_point, threshold, new_value):
     h, w = image.shape
