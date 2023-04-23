@@ -328,5 +328,5 @@ for featureImage in facial_features:
 
 
 # # TEST FOR IRIS DETECTION
-for image in glob.glob("./ChicagoFaceDatabaseImages/*.jpg"):
-    detect_facial_landmarks(image)
+# for image in glob.glob("./ChicagoFaceDatabaseImages/*.jpg"):
+#     detect_facial_landmarks(image)
