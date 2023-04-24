@@ -2,12 +2,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import glob
 import cv2
+import random
 
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import Flatten
 from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.callbacks import EarlyStopping
 
 import facial_features as ff
 
@@ -39,10 +41,11 @@ def read_data():
         count += 1
 
     
-    training_set = patterns[:int(.75*len(targets))]
-    testing_set = patterns[int(.75*len(targets)):]
-    training_targets = targets[:int(.75*len(targets))]
-    testing_targets = targets[int(.75*len(targets)):]
+    training_set = patterns[:int(.8*len(targets))]
+    testing_set = patterns[int(.8*len(targets)):]
+    training_targets = targets[:int(.8*len(targets))]
+    testing_targets = targets[int(.8*len(targets)):]
+    
     
     train_data = np.array(training_set)
     train_targets = np.array(training_targets)
@@ -50,19 +53,51 @@ def read_data():
 
     test_data = np.array(testing_set)
     test_targets = np.array(testing_targets)
-    test_targets = to_categorical(test_targets)   
+    test_targets = to_categorical(test_targets)  
+
+    train_data2 = []
+    test_data2 = []
+    for item in train_data:
+        d = [eval(i) for i in item]
+        train_data2.append(d)
+    train_data = np.array(train_data2)
+    for item in test_data:
+        d = [eval(i) for i in item]
+        test_data2.append(d)
+    test_data = np.array(test_data2)
 
     return train_data, train_targets, test_data, test_targets
 
 
 def nn():
     train_data, train_targets, test_data, test_targets = read_data()
+    zipped_lists = list(zip(train_data, train_targets))
+    random.shuffle(zipped_lists)
+    zipped_lists2 = list(zip(test_data, test_targets))
+    random.shuffle(zipped_lists2)
+    train_data = np.array([x[0] for x in zipped_lists])
+    train_targets = np.array([x[1] for x in zipped_lists])
+    test_data = np.array([x[0] for x in zipped_lists2])
+    test_targets = np.array([x[1] for x in zipped_lists2])
+    print(train_data.shape, train_targets.shape)
+    print(test_data.shape, test_targets.shape)
+
     network = Sequential()
     network.add(Flatten(input_shape=(13,)))
-    network.add(Dense(10, activation='sigmoid', name='hidden', input_shape=(13,)))
-    network.add(Dense(4, activation='sigmoid', name='output'))
-    network.compile(loss='mean_squared_error', optimizer='RMSprop', metrics=['accuracy'])
-    network.summary()
+    network.add(Dense(30, activation='relu', name='hidden', input_shape=(13,)))
+    network.add(Dense(16, activation='relu', name='hidden2', kernel_regularizer=tf.keras.regularizers.l2(0.001)))
+    network.add(Dense(4, activation='softmax', name='output'))
+    network.compile(loss=tf.keras.losses.CategoricalCrossentropy(), optimizer='adam', metrics=['accuracy'])
+    # network.summary()
+    print('pre_training_eval')
+    network.evaluate(test_data,test_targets)
+
+    early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+
+    history = network.fit(train_data, train_targets, epochs=50, batch_size=16, validation_split=.1, callbacks=[early_stopping])
+    print('training_data_eval:')
+    network.evaluate(train_data,train_targets)
+    print('testing_data_eval')
     network.evaluate(test_data,test_targets)
 
 def get_pattern(image):
