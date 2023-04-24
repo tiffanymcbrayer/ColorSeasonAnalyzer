@@ -228,45 +228,50 @@ def getHair(img_path):
 
     # Convert the 3-channel image back to a single channel image
     blurred_image_filled = cv2.cvtColor(blurred_image_3ch, cv2.COLOR_BGR2GRAY)
+    
 
     # Set the y-coordinate limit
-    y_limit = 350
+    y_limit = 50
 
-    # Create a region of interest (ROI) above the y-coordinate limit
-    roi = blurred_image_filled[:y_limit, :]
+    (average_hair_value_color, lVal, aVal, bVal) = ((0.0, 0.0, 0.0, 0.0), 0.0, 128.0, 128.0)
 
-    # Create the hair mask using the ROI
-    _, hair_mask_roi = cv2.threshold(roi, new_value[0] - threshold, 255, cv2.THRESH_BINARY)
+    while (average_hair_value_color, lVal, aVal, bVal) == ((0.0, 0.0, 0.0, 0.0), 0.0, 128.0, 128.0):
+        y_limit += 50
+        # Create a region of interest (ROI) above the y-coordinate limit
+        roi = blurred_image_filled[:y_limit, :]
 
-    hair_mask_roi_inv = cv2.bitwise_not(hair_mask_roi)
+        # Create the hair mask using the ROI
+        _, hair_mask_roi = cv2.threshold(roi, new_value[0] - threshold, 255, cv2.THRESH_BINARY)
 
-    # Create a full-size hair mask with the same dimensions as the original image
-    hair_mask = np.zeros_like(blurred_image_filled)
-    hair_mask[:y_limit, :] = hair_mask_roi_inv
+        hair_mask_roi_inv = cv2.bitwise_not(hair_mask_roi)
 
-    # hair_mask_inv = cv2.bitwise_not(hair_mask)
+        # Create a full-size hair mask with the same dimensions as the original image
+        hair_mask = np.zeros_like(blurred_image_filled)
+        hair_mask[:y_limit, :] = hair_mask_roi_inv
 
-    # Create the masked image
-    masked_image = cv2.bitwise_and(image, image, mask=hair_mask)
-    lVal, aVal, bVal = getLabColorSpace(masked_image)
-    # Compute the average pixel value of the detected hair region in the color image
-    average_hair_value_color = cv2.mean(image, mask=hair_mask)
+        # hair_mask_inv = cv2.bitwise_not(hair_mask)
 
-    resized_image = cv2.resize(image, None, fx=.25, fy=.25, interpolation=cv2.INTER_AREA)
-    
-    resized_hair_mask = cv2.resize(hair_mask, None, fx=.25, fy=.25, interpolation=cv2.INTER_AREA)
-    # masked_image = cv2.bitwise_and(image, image, mask=hair_mask)
-    resized_masked_image = cv2.resize(masked_image, None, fx=.25, fy=.25, interpolation=cv2.INTER_AREA)
+        # Create the masked image
+        masked_image = cv2.bitwise_and(image, image, mask=hair_mask)
+        lVal, aVal, bVal = getLabColorSpace(masked_image)
+        # Compute the average pixel value of the detected hair region in the color image
+        average_hair_value_color = cv2.mean(image, mask=hair_mask)
+
+        resized_image = cv2.resize(image, None, fx=.25, fy=.25, interpolation=cv2.INTER_AREA)
+        
+        resized_hair_mask = cv2.resize(hair_mask, None, fx=.25, fy=.25, interpolation=cv2.INTER_AREA)
+        # masked_image = cv2.bitwise_and(image, image, mask=hair_mask)
+        resized_masked_image = cv2.resize(masked_image, None, fx=.25, fy=.25, interpolation=cv2.INTER_AREA)
 
 
-    # cv2.imshow('Original Image', resized_image)
-    # # cv2.imshow('Hair Mask', resized_hair_mask)
-    # cv2.imshow('Masked Image', resized_masked_image)
-    # # resized_hair_swatch = cv2.resize(hair_swatch, None, fx=.25, fy=.25, interpolation=cv2.INTER_AREA)
-    # # cv2.imshow('Hair Swatch', hair_swatch)
+        # cv2.imshow('Original Image', resized_image)
+        # # cv2.imshow('Hair Mask', resized_hair_mask)
+        # cv2.imshow('Masked Image', resized_masked_image)
+        # resized_hair_swatch = cv2.resize(hair_swatch, None, fx=.25, fy=.25, interpolation=cv2.INTER_AREA)
+        # cv2.imshow('Hair Swatch', hair_swatch)
 
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
 
     #return average_hair_value_color
     return (average_hair_value_color, lVal, aVal, bVal,resized_masked_image)
@@ -291,7 +296,10 @@ def flood_fill(image, seed_point, threshold, new_value):
                     stack.append((nx, ny))
 
 
-
+def display_all_hair():
+    for image in glob.glob("./ColorCorrectedImages/*.jpg"):
+        h = getHair(image)
+        print(h)
 
 # # TEST THE FUNCTION 1
 img_path = "ChicagoFaceDatabaseImages/CFD-AF-202-122-N.jpg"
