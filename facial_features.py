@@ -5,7 +5,6 @@ import numpy as np
 import glob
 from PIL import Image
 import color_correct
-from skimage.feature import local_binary_pattern
 
 
 #def detect_facial_landmarks(img_path):
@@ -356,7 +355,7 @@ def find_intersection(line1_point1, line1_point2, line2_point1, line2_point2):
 
 
 # Right now getting top 3 colors in a mask 
-def get_top_color(mask, num_colors=3, value_threshold=10, inBGR=1):
+def get_top_color(mask, num_colors=3, value_threshold=30, inBGR=1):
     # Get top 3 most prominent colors in iris using color histogram, excluding black color
     hist = cv2.calcHist([mask], [0,1,2], None, [256,256,256], [0,256,0,256,0,256])
     hist_flatten = hist.flatten()
@@ -529,7 +528,7 @@ def facial_features_and_values(img_str):
     # EYES 
     eye_color, l_avg_eye, a_avg_eye, b_avg_eye, irisMask = find_iris(eyeLeft)
     eye_color = (eye_color[2], eye_color[1], eye_color[0])
-    print(eye_color)
+    # print(eye_color)
     
     
 

@@ -14,14 +14,14 @@ from tensorflow.keras.callbacks import EarlyStopping
 import facial_features as ff
 
 data = 'targets.txt'
-def read_data():
+def read_data(r=True):
     patterns = []
     targets = []
     images = glob.glob("./ColorCorrectedImages/*.jpg")
     valid_targets = ['0','1','2','3']
     f = open(data,'r')
     count = 0
-    f2 = open('patterns.txt','r')
+    f2 = open('patterns2.txt','r')
     f2_lines = f2.readlines()
     for line in f.readlines():
         if count == 0:
@@ -36,16 +36,18 @@ def read_data():
                 if x in valid_targets:
                     targets.append(int(x))
                     #get patterns
-                    avgUndertone, eye_color_r, eye_color_g, eye_color_b, l_eye, a_eye, b_eye, hair_color_r, hair_color_g, hair_color_b, l_hair, a_hair, b_hair = f2_lines[id].split()
-                    patterns.append(f2_lines[id].split())
-                    # patterns.append([avgUndertone,eye_color_r,eye_color_g,eye_color_b,hair_color_r,hair_color_g,hair_color_b])
+                    # avgUndertone, eye_color_r, eye_color_g, eye_color_b, l_eye, a_eye, b_eye, hair_color_r, hair_color_g, hair_color_b, l_hair, a_hair, b_hair = f2_lines[id].split()
+                    skin_L, skin_A, skin_B, eye_r, eye_g, eye_b, eye_L, eye_A, eye_B, hair_L, hair_A, hair_B, hair_r1, hair_g1, hair_b1, hair_r2, hair_g2, hair_b2, hair_r3, hair_g3, hair_b3 = f2_lines[id+1].split()
+                    # patterns.append(f2_lines[id+1].split())
+                    patterns.append([skin_A, skin_B, eye_r, eye_g, eye_b, hair_r1, hair_g1, hair_b1])
                     
         count += 1
 
-    zipped_lists = list(zip(patterns, targets))
-    random.shuffle(zipped_lists)
-    patterns = np.array([x[0] for x in zipped_lists])
-    targets = np.array([x[1] for x in zipped_lists])
+    if r:
+        zipped_lists = list(zip(patterns, targets))
+        random.shuffle(zipped_lists)
+        patterns = np.array([x[0] for x in zipped_lists])
+        targets = np.array([x[1] for x in zipped_lists])
 
     
     training_set = patterns[:int(.8*len(targets))]
@@ -78,13 +80,15 @@ def read_data():
 
 def nn():
     train_data, train_targets, test_data, test_targets = read_data()
-
+    print(train_data[0])
+    train_data, test_data = normalize_data(train_data), normalize_data(test_data)
+    print(train_data[0])
     print(train_data.shape, train_targets.shape)
     print(test_data.shape, test_targets.shape)
 
     network = Sequential()
-    network.add(Flatten(input_shape=(13,)))
-    network.add(Dense(30, activation='relu', name='hidden', input_shape=(13,)))
+    network.add(Flatten(input_shape=(8,)))
+    network.add(Dense(30, activation='relu', name='hidden', input_shape=(8,)))
     network.add(Dense(16, activation='relu', name='hidden2', kernel_regularizer=tf.keras.regularizers.l2(0.001)))
     network.add(Dense(4, activation='softmax', name='output'))
     network.compile(loss=tf.keras.losses.CategoricalCrossentropy(), optimizer='adam', metrics=['accuracy'])
@@ -94,12 +98,14 @@ def nn():
 
     early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
 
-    history = network.fit(train_data, train_targets, epochs=50, batch_size=16, validation_split=.1, callbacks=[early_stopping])
+    history = network.fit(train_data, train_targets, epochs=250, batch_size=32, validation_split=.1, callbacks=[early_stopping])
     print('training_data_eval:')
     network.evaluate(train_data,train_targets)
     print('testing_data_eval')
     network.evaluate(test_data,test_targets)
+    return history, network
 
+#old
 def get_pattern(image):
     f = ff.detect_facial_landmarks(image)
     #undertone
@@ -119,13 +125,37 @@ def get_pattern(image):
     return [avgUndertone, eye_color[0], eye_color[1], eye_color[2], l_eye, a_eye, b_eye, hair_color[0], hair_color[1], hair_color[2], l_hair, a_hair, b_hair]
 
 def write_pattern():
-    file = open('patterns.txt','w')
-    for image in glob.glob("./ColorCorrectedImages/*.jpg"):
-        p = get_pattern(image)
-        for item in p:
-            file.write(str(item) + " ")
-        file.write('\n')
+    file = open('patterns2.txt','w')
+    count = 0
+    file.write("skin_L skin_A skin_B eye_r eye_g eye_b eye_L eye_A eye_B hair_L hair_A hair_B hair_r1 hair_g1 hair_b1 hair_r2 hair_g2 hair_b2 hair_r3 hair_g3 hair_b3\n")
+    for image in glob.glob("./ChicagoFaceDatabaseImages/*.jpg"):
+        data = ff.facial_features_and_values(image)
+        file.write("{:f} {:f} {:f} {:d} {:d} {:d} {:f} {:f} {:f} {:f} {:f} {:f} {:d} {:d} {:d} {:d} {:d} {:d} {:d} {:d} {:d} \n".format(
+            data['skinLab'][0], data['skinLab'][1], data['skinLab'][2],
+            data['eyeRGB'][0], data['eyeRGB'][1], data['eyeRGB'][2],
+            data['eyeLab'][0], data['eyeLab'][1], data['eyeLab'][2],
+            data['hairLab'][1], data['hairLab'][1], data['hairLab'][2],
+            data['hairColors'][0][0], data['hairColors'][0][1], data['hairColors'][0][2],
+            data['hairColors'][1][0], data['hairColors'][1][1], data['hairColors'][1][2],
+            data['hairColors'][2][0], data['hairColors'][2][1], data['hairColors'][2][2]
+        ))
+        if count % 10 == 0:
+            print(count) 
+        # p = get_pattern(image)
+        # for item in p:
+        #     file.write(str(item) + " ")
+        # file.write('\n')
+        # if count == 5:
+        #     break
+        count += 1
     file.close()
+
+
+def normalize_data(data):
+    min_values = np.min(data, axis=0)
+    max_values = np.max(data, axis=0)
+    normalized_data = (data - min_values) / (max_values - min_values)
+    return normalized_data
 
 
 def plot_history(history):
