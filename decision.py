@@ -36,9 +36,16 @@ def read_data():
                 if x in valid_targets:
                     targets.append(int(x))
                     #get patterns
+                    avgUndertone, eye_color_r, eye_color_g, eye_color_b, l_eye, a_eye, b_eye, hair_color_r, hair_color_g, hair_color_b, l_hair, a_hair, b_hair = f2_lines[id].split()
                     patterns.append(f2_lines[id].split())
+                    # patterns.append([avgUndertone,eye_color_r,eye_color_g,eye_color_b,hair_color_r,hair_color_g,hair_color_b])
                     
         count += 1
+
+    zipped_lists = list(zip(patterns, targets))
+    random.shuffle(zipped_lists)
+    patterns = np.array([x[0] for x in zipped_lists])
+    targets = np.array([x[1] for x in zipped_lists])
 
     
     training_set = patterns[:int(.8*len(targets))]
@@ -71,14 +78,7 @@ def read_data():
 
 def nn():
     train_data, train_targets, test_data, test_targets = read_data()
-    zipped_lists = list(zip(train_data, train_targets))
-    random.shuffle(zipped_lists)
-    zipped_lists2 = list(zip(test_data, test_targets))
-    random.shuffle(zipped_lists2)
-    train_data = np.array([x[0] for x in zipped_lists])
-    train_targets = np.array([x[1] for x in zipped_lists])
-    test_data = np.array([x[0] for x in zipped_lists2])
-    test_targets = np.array([x[1] for x in zipped_lists2])
+
     print(train_data.shape, train_targets.shape)
     print(test_data.shape, test_targets.shape)
 
