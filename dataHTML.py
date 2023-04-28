@@ -8,6 +8,7 @@ from PIL import Image
 import io
 
 import facial_features
+import color_correct
 
 # Display the 3 color swatches (left cheek, right cheek, forehead) and the average undertone value 
 # Save HTML file as "filename"
@@ -35,21 +36,12 @@ def displayUndertoneSwatched_HTML(filename, numImages):
         data = []
         for image in glob.glob("./ColorCorrectedImages/*.jpg"):
 
-            faceData = []
             f = facial_features.detect_facial_landmarks(image)   
 
-            # leftCheek, rightCheek, forehead
-            avgUndertone = 0
-            for i in range(0,3):
-                img = f[i+3]      
-                underTone = facial_features.under_tone(img)
-                faceData.append((img, underTone))   
-                avgUndertone +=  underTone
-
-            avgUndertone = avgUndertone/3
-            faceData.append(("", avgUndertone))
-            data.append(faceData)
-
+            imgArr = [f[3], f[4], f[5]]
+            l_avg, a_avg, b_avg = facial_features.total_under_tone(imgArr)
+            data.append(((l_avg, a_avg, b_avg), imgArr))
+            
             print(counter)
 
             if counter == numImages:
@@ -59,18 +51,17 @@ def displayUndertoneSwatched_HTML(filename, numImages):
 
         
 
-        sorted_arr = sorted(data, key=lambda x: x[3][1], reverse=True)
+        sorted_arr = sorted(data, key=lambda x: x[0][2], reverse=True)
         for tup in sorted_arr:
-            
             # leftCheek, rightCheek, forehead
             for i in range(0,3):
-                img = tup[i][0]
+                img = tup[1][i]
                 _, buffer = cv2.imencode('.jpg', img)
                 img_str = base64.b64encode(buffer).decode("utf-8")
                 rows.append(f'<td><img src="data:image/jpeg;base64,{img_str}"></td>')
 
-            aValue = tup[3][1]
-            rows.append(f'<td>a = {aValue}</td>')
+            #rows.append(f'<td>a = {aValue}</td>')
+            rows.append(f'<td>(L,a,b) = ({tup[0][0]:.2f}, {tup[0][1]:.2f}, {tup[0][2]:.2f})</td>')
             rows.append('</tr><tr>')
             
 
@@ -80,7 +71,7 @@ def displayUndertoneSwatched_HTML(filename, numImages):
         with open(filename, "w") as f:
             f.write(html)
 
-#displayUndertoneSwatched_HTML("test", 5)
+#displayUndertoneSwatched_HTML("test", 100)
 
 
 
@@ -163,6 +154,126 @@ def displayEyeInfo_HTML(filename, numImages):
 #displayEyeInfo_HTML("test", 10)
 
 
+def displairHairInfor_HTML_P2(filename, startImg, endImg):
+     # Create an HTML template for displaying the images
+        html_template = '''
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>DATA</title>
+        </head>
+        <body>
+            <table>
+                {rows}
+            </table>
+        </body>
+        </html>
+        '''
+
+        # Generate HTML code for each row of images
+        rows = []
+
+        counter = 1
+        data = []
+        #for image in glob.glob("./ColorCorrectedImages/*.jpg"):
+        for i in range(startImg, endImg):
+            image = "ColorCorrectedImages/CCF" + str(i) + ".jpg"
+
+            image_str = "OurPhotos/DSC06473.JPG"
+            image = color_correct.color_correct(image_str)
+            image_str = "OurPhotos/color_corrected.JPG"
+            cv2.imwrite(image_str, image)
+
+            image = image_str
+            # Load the original image
+            original_image = cv2.imread(image)
+
+            
+
+            f = facial_features.detect_facial_landmarks(image_str)   
+            imgArr = [f[3], f[4], f[5]]
+            l_avg, a_avg, b_avg = facial_features.total_under_tone(imgArr)
+            
+            
+        
+                    
+            threshold_value = 100
+            mask = facial_features.get_hair_mask(image, threshold_value)
+
+            l_hair, a_hair, b_hair  = facial_features.getLabColorSpace(mask)
+            if l_hair > 70:
+                 # REDO THE HAIR MASK!!
+                threshold_value = 190
+                mask = facial_features.get_hair_mask(image, threshold_value)
+                l_hair, a_hair, b_hair  = facial_features.getLabColorSpace(mask)
+
+            top3colors = facial_features.get_top_color(mask,num_colors=3)
+            print(top3colors)
+
+            # Lab values, 
+            data.append(((l_avg, a_avg, b_avg ),original_image, mask, (l_hair, a_hair, b_hair), top3colors))
+  
+            
+
+            print(counter)
+            # if counter == numImages:
+            #     break
+            counter+=1
+            
+
+        # W.R.T s
+        
+        sorted_arr = sorted(data, key=lambda x: x[3][0], reverse=True)
+        
+        for ar in sorted_arr:
+            # ORIGINAL IMAGE
+            img = ar[1]
+            _, buffer = cv2.imencode('.jpg', img)
+            img_str = base64.b64encode(buffer).decode("utf-8")
+            rows.append(f'<td><img src="data:image/jpeg;base64,{img_str}" width="{original_image.shape[1]//8}" height="{original_image.shape[0]//8}"></td>')
+
+            img = ar[2]
+            _, buffer = cv2.imencode('.jpg', img)
+            img_str = base64.b64encode(buffer).decode("utf-8")
+            rows.append(f'<td><img src="data:image/jpeg;base64,{img_str}" width="{img.shape[1]//2}" height="{img.shape[0]//2}"></td>')
+
+            for i in range(0,3):
+                print(ar[4][i])
+                # b, g, r = ar[4][i]
+                # rgb_color = (r,g,b)
+                rgb_color = ar[4][i]
+
+
+
+                img = Image.new('RGB', (50, 50), rgb_color)
+                img_np = np.array(img)
+
+                _, buffer = cv2.imencode('.jpg', img_np)
+                img_str = base64.b64encode(buffer).decode("utf-8")
+                rows.append(f'<td><img src="data:image/jpeg;base64,{img_str}"></td>')
+
+
+
+
+            #rows.append(f'<td>(L,a,b) = ({ar[0][0]:.2f}, {ar[0][1]:.2f}, {ar[0][2]:.2f})</td>')
+            rows.append(f'<td>HAIR: (L,a,b) = ({ar[3][0]:.2f}, {ar[3][1]:.2f}, {ar[3][2]:.2f})</td>')
+            rows.append(f'<td> Top 3 colors: = ({ar[4]})</td>')
+
+
+            # bgrVal = ar[0]
+            # rows.append(f'<td>(R,G,B) = ({bgrVal[2]},{bgrVal[1]},{bgrVal[0]})</td>')
+            rows.append('</tr><tr>')
+        
+
+        html = html_template.format(rows="\n".join(rows))
+        # Write the HTML to a file
+        filename = filename + ".html"
+        with open(filename, "w") as f:
+            f.write(html)
+#displairHairInfor_HTML_P2("test", 200, 201)
+#displairHairInfor_HTML_P2("test", 0, 307)
+#displairHairInfor_HTML_P2("test", 200, 201)
+
 
 def displayHairInfo_HTML(filename, numImages):
         
@@ -193,7 +304,8 @@ def displayHairInfo_HTML(filename, numImages):
 
             color = facial_features.getHair(image)
             # (b, g, r), l, a, b, irisMask
-            rgb_color = (int(color[0][0]), int(color[0][1]), int(color[0][2]))
+
+            rgb_color = (int(color[0][1]), int(color[0][1]), int(color[0][2]))
             img = Image.new('RGB', (50, 50), rgb_color)
             img_np = np.array(img)
             hairData = [color[0], color[1], color[2], color[3], img_np, original_image, color[4]]
@@ -270,6 +382,12 @@ def displayAllFeatures_HTML(filename, startImg, EndImg):
     for i in range(startImg, EndImg):
         image_str = "ColorCorrectedImages/CCF" + str(i) + ".jpg"
 
+        image_str = "OurPhotos/DSC06484.JPG"
+        image = color_correct.color_correct(image_str)
+        image_str = "OurPhotos/color_corrected.JPG"
+        cv2.imwrite(image_str, image)
+
+
         
         image = image_str
         # Load the original image
@@ -293,12 +411,19 @@ def displayAllFeatures_HTML(filename, startImg, EndImg):
 
         # SKIN (FOREHEAD, LEFT CHEEK, RIGHT CHEEK)
         # leftCheek, rightCheek, forehead
+        """
         avgUndertone = 0
         for i in range(0,3):
             img = f[i+3]      
             underTone = facial_features.under_tone(img)
             avgUndertone +=  underTone
         avgUndertone = avgUndertone/3
+        """
+
+        imgArr = [cheekLeft, cheekRight, forehead]
+        l_avg, a_avg, b_avg = facial_features.total_under_tone(imgArr)
+        avgUndertone = a_avg
+        print(avgUndertone)
 
         rows.append('<table>')
         _, buffer = cv2.imencode('.jpg', forehead)
@@ -346,6 +471,9 @@ def displayAllFeatures_HTML(filename, startImg, EndImg):
         rows.append('</table>')
 
 
+
+
+
         # HAIR
         color = facial_features.getHair(image)
         rgb_color = (int(color[0][0]), int(color[0][1]), int(color[0][2]))
@@ -386,7 +514,7 @@ def displayAllFeatures_HTML(filename, startImg, EndImg):
         f.write(html)
      
 #imgage_str = "ColorCorrectedImages/CCF35.jpg"
-displayAllFeatures_HTML("test", 50, 51)
+#displayAllFeatures_HTML("test", 50, 51)
 
 
 # counter = 0
