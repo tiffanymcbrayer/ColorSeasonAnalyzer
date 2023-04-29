@@ -85,7 +85,9 @@ div {
     box-shadow: 2px 2px 2px rgba(0,0,0,0.3);
     background: linear-gradient(to bottom, #c2a1a1 0%,#a67e7e 100%);
 }
-
+.pad_cheek {
+    padding-right: 40px;
+}
 .middle-content {
     background-color: #ffffff;
     width: 50%;
