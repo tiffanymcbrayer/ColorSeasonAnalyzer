@@ -4,10 +4,11 @@ import sys
 import numpy as np
 import glob
 from PIL import Image
-import color_correct
+import color_corrector
 import matplotlib.pyplot as plt
 import rawpy
-import imageio
+import get_background
+# import imageio
 
 
 #def detect_facial_landmarks(img_path):
@@ -538,15 +539,19 @@ def get_hair_mask(image, threshold_value):
 
 
 
-def facial_features_and_values(img_str, color_corrected, inBGR):
+def facial_features_and_values(img_str, ours, color_correct, inBGR):
     original_image = cv2.imread(img_str)
     
 
     # COLOR CORRECT THE IMAGE 
-    if color_corrected == 1:
-        image = color_correct.color_correct(img_str)
+    if color_correct is True:
+        image = color_corrector.color_corrector(img_str)
     else:
         image = cv2.imread(img_str)
+    
+    # CORRECT IMAGE BASED ON DATASET
+    if ours is True:
+        image = get_background.get_avg_bg(image)
 
     # if inBGR == 1:
     #     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)

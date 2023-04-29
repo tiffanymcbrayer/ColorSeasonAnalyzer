@@ -9,7 +9,7 @@ import io
 import rawpy
 
 import facial_features
-import color_correct
+import color_corrector
 
 # Display the 3 color swatches (left cheek, right cheek, forehead) and the average Lab values 
 def display_skin_info_HTML(filename, startImg, endImg):
@@ -243,9 +243,9 @@ def display_hair_info_HTML(filename, startImg, endImg):
 #-----------------------------------------------------------------------------
 # THESE FUNCTIONS ARE USED TO DISPLAY ALL THE FEATURES AND VALUES ON A "TEST" HTML PAGE  
 
-def display_all_features_HTML(img_str, counter, color_corrected, inBGR):
+def display_all_features_HTML(img_str, counter, ours, color_correct, inBGR):
     rows = []
-    data = facial_features.facial_features_and_values(img_str, color_corrected, inBGR)
+    data = facial_features.facial_features_and_values(img_str, ours, color_correct, inBGR)
 
     #original_image = data['original_image']
     color_corrected_image = data['color_corrected_image']
@@ -340,7 +340,7 @@ def display_all_features_HTML(img_str, counter, color_corrected, inBGR):
     return rows
 
 
-def create_HTML_file_all_features_specific_our_photos(filename, imgList, color_corrected = 1, inBGR = 1):
+def create_HTML_file_all_features_specific_our_photos(filename, imgList, ours = True, color_correct = True, inBGR = 1):
     # Create an HTML template for displaying the images
     html_template = '''
     <!DOCTYPE html>
@@ -362,7 +362,7 @@ def create_HTML_file_all_features_specific_our_photos(filename, imgList, color_c
     # Process the files in order
     for img_str in imgList:
         img_str = "OurPhotos/" + img_str
-        img_HTML_rows = display_all_features_HTML(img_str, counter, color_corrected, inBGR = 1)
+        img_HTML_rows = display_all_features_HTML(img_str, counter, ours, color_correct, inBGR = 1)
         rows += img_HTML_rows
         print(counter)
         counter+=1
@@ -374,7 +374,7 @@ def create_HTML_file_all_features_specific_our_photos(filename, imgList, color_c
         f.write(html)
 
 
-def create_HTML_file_all_features_specific(filename, img_str, color_corrected = 1):
+def create_HTML_file_all_features_specific(filename, img_str, ours = False, color_correct = True):
     # Create an HTML template for displaying the images
     html_template = '''
     <!DOCTYPE html>
@@ -393,7 +393,7 @@ def create_HTML_file_all_features_specific(filename, img_str, color_corrected = 
     # Generate HTML code for each row of images
     rows = []
     counter = 0
-    img_HTML_rows = display_all_features_HTML(img_str, counter, color_corrected, inBGR = 1)
+    img_HTML_rows = display_all_features_HTML(img_str, counter, ours, color_correct, inBGR = 1)
     rows += img_HTML_rows
 
     html = html_template.format(rows="\n".join(rows))
@@ -403,7 +403,7 @@ def create_HTML_file_all_features_specific(filename, img_str, color_corrected = 
         f.write(html)
 
 
-def create_HTML_file_all_features(filename, startImg, endImg, color_corrected = 1):
+def create_HTML_file_all_features(filename, startImg, endImg, ours = False, color_correct = True):
     # Create an HTML template for displaying the images
     html_template = '''
     <!DOCTYPE html>
@@ -439,7 +439,7 @@ def create_HTML_file_all_features(filename, startImg, endImg, color_corrected = 
     for file_name in sorted_files:
         img_str = "ChicagoFaceDatabaseImages/" + file_name
 
-        img_HTML_rows = display_all_features_HTML(img_str, counter, color_corrected, 0)
+        img_HTML_rows = display_all_features_HTML(img_str, counter, ours, color_correct, 0)
         rows += img_HTML_rows
 
         print(counter)
@@ -451,27 +451,34 @@ def create_HTML_file_all_features(filename, startImg, endImg, color_corrected = 
     with open(filename, "w") as f:
         f.write(html)
      
+<<<<<<< Updated upstream
+=======
+#imgage_str = "ColorCorrectedImages/CCF35.jpg"
+displayAllFeatures_HTML("./test", 211, 221)
+>>>>>>> Stashed changes
 
 
 
 # Use this function to look through the images in the ChicagoFaceDatabaseImages start-end
-# HTML filename, start img #, end img #, color_corrected 0 or 1
-create_HTML_file_all_features("test", 252, 254, 1)
+# HTML filename, start img #, end img #, color_correct True or False
+create_HTML_file_all_features("test", 0, 5)
 
 
 
 # Use this function to look at one specific image
-# HTML filename, color_corrected 0 or 1
-img_str = "OurPhotos/DSC06481_2.JPG"
+# HTML filename, color_correct True or False
+# img_str = "OurPhotos/DSC06481_2.JPG"
 #create_HTML_file_all_features_specific("test", img_str,  1)
 
 
 # Use this function to look through all the images in OurPhotos
-imgList = ["DSC06469.JPG", "DSC06471.JPG", "DSC06473.JPG", "DSC06474.JPG","DSC06477.JPG",
-           "DSC06479.JPG", "DSC06481.JPG", "DSC06483.JPG", "DSC06484.JPG", "DSC06488.JPG",
-            "DSC06489.JPG", "DSC06491.JPG", "DSC06494.JPG"]
-imgList = ["DSC06473.JPG", "DSC06474.JPG", "DSC06481.JPG"]
-create_HTML_file_all_features_specific_our_photos("test_ours", imgList, 1)
+# imgList = ["DSC06469.JPG", "DSC06471.JPG", "DSC06473.JPG", "DSC06474.JPG","DSC06477.JPG",
+#            "DSC06479.JPG", "DSC06481.JPG", "DSC06483.JPG", "DSC06484.JPG", "DSC06488.JPG",
+#             "DSC06489.JPG", "DSC06491.JPG", "DSC06494.JPG"]
+# imgList = ["DSC06471.JPG","DSC06473.JPG","DSC06474.JPG","DSC06477.JPG","DSC06479.JPG","DSC06481.JPG",
+#            "DSC06483.JPG","DSC06484.JPG","DSC06488.JPG","DSC06489.JPG","DSC06491.JPG","DSC06494.JPG"]
+# # imgList = ["DSC06473.JPG", "DSC06474.JPG", "DSC06481.JPG"]
+# create_HTML_file_all_features_specific_our_photos("test_ours", imgList, True)
 
 
 
