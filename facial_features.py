@@ -4,12 +4,13 @@ import sys
 import numpy as np
 import glob
 from PIL import Image
+import color_correct
 
 
-
-def detect_facial_landmarks(img_path):
+#def detect_facial_landmarks(img_path):
+def detect_facial_landmarks(image):
     # Load the image and convert it to grayscale
-    image = cv2.imread(img_path)
+    #image = cv2.imread(img_path)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     detector = dlib.get_frontal_face_detector()
@@ -146,19 +147,21 @@ def find_iris(eyeMask):
     return (eye_color, lVal, aVal, bVal, irisMask)
     #return eye_color
 
-def getLabColorSpace(mask):
-    # Convert irisMask to Lab color space
-    lab_mask = cv2.cvtColor(mask, cv2.COLOR_BGR2LAB)
+# def getLabColorSpace(mask):
+#     # Convert irisMask to Lab color space
+#     lab_mask = cv2.cvtColor(mask, cv2.COLOR_BGR2LAB)
 
-    # Split into L, a, and b channels
-    L_channel, a_channel, b_channel = cv2.split(lab_mask)
-    lValue = np.mean(L_channel)
-    aValue = np.mean(a_channel)
-    bValue = np.mean(b_channel)
+#     # Split into L, a, and b channels
+#     L_channel, a_channel, b_channel = cv2.split(lab_mask)
+#     lValue = np.mean(L_channel)
+#     aValue = np.mean(a_channel)
+#     bValue = np.mean(b_channel)
 
-    return (lValue, aValue, bValue)
+#     return (lValue, aValue, bValue)
     
-def under_tone(img):
+# Undertone from Lab color space 
+#def under_tone(img):
+def getLabColorSpace(img):
     # Convert RGB to LAB
     img_lab = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
     mask = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
@@ -167,27 +170,38 @@ def under_tone(img):
     L_channel, a_channel, b_channel = cv2.split(img_lab)
 
     # Use mask to extract non-black pixels from a and b channels
+    l_values = L_channel[mask != 0]
     a_values = a_channel[mask != 0]
+    b_values = b_channel[mask != 0]
+
 
     # Calculate average a and b values
+    l_avg = np.mean(l_values)
     a_avg = np.mean(a_values)
+    b_avg = np.mean(b_values)
 
 
-    return a_avg
+    return (l_avg, a_avg, b_avg)
 
 # Return the undertone using the 3 swatches - left cheek, right cheek, and forehead
 # higher a* value would indicate a cooler or pinker undertone, while a lower a* value would indicate a warmer or yellower undertone.
-def total_under_tone(img_path):
-    total_under_tone_val = 0
-    f = detect_facial_landmarks(img_path)  
+def total_under_tone(imgArr):
+    l_tot = 0
+    a_tot = 0
+    b_tot = 0
     # 1.leftCheek, 2.rightCheek, 3.forehead
     for i in range(0,3):
-        img = f[i+3]      
-        underTone = under_tone(img)
-        total_under_tone_val +=  underTone
+        img = imgArr[i]      
+        l, a, b = getLabColorSpace(img)
+        l_tot += l
+        a_tot += a
+        b_tot += b
+  
+    l_avg = l_tot/3
+    a_avg = a_tot/3
+    b_avg = b_tot/3
 
-    avgUndertone = total_under_tone_val/3
-
+    """
     # Threshold for cool, neutral, warm
     if avgUndertone > 129:
         print("Cool")
@@ -195,8 +209,9 @@ def total_under_tone(img_path):
         print("Neutral")
     else:
         print("Warm")
-    
-    return avgUndertone
+    """
+
+    return (l_avg, a_avg, b_avg)
 
     
 def getHair(img_path):
@@ -301,40 +316,277 @@ def display_all_hair():
         h = getHair(image)
         print(h)
 
-# # TEST THE FUNCTION 1
-img_path = "ChicagoFaceDatabaseImages/CFD-AF-202-122-N.jpg"
-# facial_features = detect_facial_landmarks(img_path)
-
-"""
-a_value = total_under_tone(img_path)
-print(a_value)
-
-cv_img = cv2.imread(img_path)
-scale = 0.5
-resized_img = cv2.resize(cv_img, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
-hsv_img = cv2.cvtColor(resized_img, cv2.COLOR_BGR2HSV)
-# og resized img
-cv2.imshow("Resized Image", resized_img)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-"""
-
-
-
-'''
-counter = 0
-for featureImage in facial_features:
-    #if counter == 3:
-        #under_tone(featureNames[counter])
-    cv2.imshow(featureNames[counter], featureImage)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-    counter+=1
-'''
 
     
+
 
 
 # # TEST FOR IRIS DETECTION
 # for image in glob.glob("./ChicagoFaceDatabaseImages/*.jpg"):
 #     detect_facial_landmarks(image)
+
+
+def find_intersection(line1_point1, line1_point2, line2_point1, line2_point2):
+    # Extract coordinates from the input points
+    x1, y1 = line1_point1
+    x2, y2 = line1_point2
+    x3, y3 = line2_point1
+    x4, y4 = line2_point2
+    
+    # Compute the slopes of the lines
+    m1 = (y2 - y1) / (x2 - x1) if x2 != x1 else float('inf')
+    m2 = (y4 - y3) / (x4 - x3) if x4 != x3 else float('inf')
+    
+    # Compute the y-intercepts of the lines
+    b1 = y1 - m1 * x1 if x2 != x1 else x1
+    b2 = y3 - m2 * x3 if x4 != x3 else x3
+    
+    # If the lines are parallel, return None
+    if m1 == m2:
+        return None
+    
+    # Compute the intersection point
+    x_int = (b2 - b1) / (m1 - m2)
+    y_int = m1 * x_int + b1
+    
+    # Return the intersection point
+    return [int(x_int), int(y_int)]
+
+
+
+# Right now getting top 3 colors in a mask 
+def get_top_color(mask, num_colors=3, value_threshold=30, inBGR=1):
+    # Get top 3 most prominent colors in iris using color histogram, excluding black color
+    hist = cv2.calcHist([mask], [0,1,2], None, [256,256,256], [0,256,0,256,0,256])
+    hist_flatten = hist.flatten()
+    hist_flatten[0] = 0 # set the count of black color to 0
+    max_color_inds = np.argsort(hist_flatten)[::-1] # get the indices of the top colors
+    top3colors = []
+    for ind in max_color_inds:
+        bgr = np.unravel_index(ind, hist.shape)
+        rgb = (bgr[2], bgr[1], bgr[0])
+        if len(top3colors) == 0:
+            top3colors.append(rgb)
+        else:
+            diff = np.abs(np.array(top3colors) - np.array(rgb))
+            if np.all(diff >= value_threshold):
+                top3colors.append(rgb)
+        if len(top3colors) == num_colors:
+            break
+
+    if inBGR:
+        top3colors = [c[::-1] for c in top3colors]
+    return top3colors
+
+
+
+
+
+
+# https://github.com/codeniko/shape_predictor_81_face_landmarks
+
+def get_hair_mask(image, threshold_value):
+    # Load image
+    #image = cv2.imread(image_path)
+
+    # Convert image to grayscale
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # Initialize dlib's face detector and landmark predictor
+    detector = dlib.get_frontal_face_detector()
+    predictor = dlib.shape_predictor("shape_predictor_81_face_landmarks.dat")
+
+    # Detect faces in the image
+    faces = detector(gray)
+
+    # Create a binary mask of the hair region
+    mask = np.zeros_like(gray)
+    for face in faces:
+        # Get the facial landmarks for the face
+        landmarks = predictor(gray, face)
+
+        # Get the points corresponding to the forehead and the hairline
+       # forehead_points = np.array([(landmarks.part(i).x, landmarks.part(i).y) for i in range(0, 80)])
+        forehead_points = np.array([(landmarks.part(i).x, landmarks.part(i).y) for i in [75, 76, 68, 69]])
+        forehead_points = np.vstack([forehead_points, [landmarks.part(75).x, landmarks.part(68).y]])
+        center_x = (landmarks.part(75).x + landmarks.part(68).x + landmarks.part(75).x) / 3
+        center_y = (landmarks.part(75).y + landmarks.part(68).y + landmarks.part(69).y) / 3
+        forehead_points = np.vstack([forehead_points, [center_x,center_y]])
+
+        forehead_points = np.array([(landmarks.part(i).x, landmarks.part(i).y) for i in range(0,80)])
+        forehead_points = np.array([(landmarks.part(i).x, landmarks.part(i).y) for i in [72, 73, 79, 74]])
+
+
+        x,y,_ = image.shape
+
+        intersection = find_intersection((landmarks.part(68).x, landmarks.part(68).y),
+                           (landmarks.part(69).x, landmarks.part(69).y), 
+                           (landmarks.part(72).x, landmarks.part(72).y), 
+                           (landmarks.part(73).x, landmarks.part(73).y))
+        
+        #
+        # all points 
+        forehead_points = np.array([(landmarks.part(i).x, landmarks.part(i).y) for i in [75, 76, 68, 69]]) 
+        forehead_points = np.vstack([forehead_points, [intersection]])
+        leftSide = np.array([(landmarks.part(i).x, landmarks.part(i).y) for i in [72, 73, 79, 74]]) 
+        forehead_points = np.vstack([forehead_points, leftSide])
+        forehead_points = np.vstack([forehead_points, [y-5, landmarks.part(74).y]])
+        forehead_points = np.vstack([forehead_points, [y-5, landmarks.part(74).y]])
+        forehead_points = np.vstack([forehead_points, [y-5,0]])
+        forehead_points = np.vstack([forehead_points, [0, 0]])
+        forehead_points = np.vstack([forehead_points, [0, landmarks.part(75).y]])
+
+        
+        
+        hairPoints = [75, 76, 68, 69, 70]
+        hairline_points = np.array([(landmarks.part(i).y, landmarks.part(i).x) for i in [72, 73, 79, 74]])
+
+
+        # Create a convex hull of the points to get the hair region
+       # hair_points = np.concatenate((forehead_points, hairline_points[::-1]), axis=0)
+        #hull = cv2.convexHull(forehead_points)
+        #cv2.fillConvexPoly(mask, hull, 255)
+
+        # Draw circles on the original image at the location of each point
+        # for i, point in enumerate(forehead_points):
+        #     x, y = point
+        #     cv2.circle(image, (int(x), int(y)), 5, (0, 0, 255), -1)
+
+        #     cv2.putText(image, str(i), (int(x)+5, int(y)+5), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 1)
+
+        mask = np.zeros(image.shape[:2], dtype=np.uint8)
+        cv2.drawContours(mask, [forehead_points], -1, 255, -1, cv2.LINE_AA)
+
+        # Apply mask to original image to get left eye image
+        maskedImage = cv2.bitwise_and(image, image, mask=mask)
+
+        #return maskedImage
+
+        # Crop the image to the masked part
+        x, y, w, h = cv2.boundingRect(mask)
+        croppedImage = maskedImage[y:y+h, x:x+w]
+    #---------------------------------------------------
+
+    img = croppedImage
+
+    # Convert the image to grayscale
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    # Apply a median filter to remove noise
+    gray = cv2.medianBlur(gray, 5)
+
+    # Apply a threshold to create a binary image
+    ret, binary = cv2.threshold(gray, threshold_value, 255, cv2.THRESH_BINARY)
+
+    # Apply morphological operations to remove noise and smooth out edges
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    binary = cv2.erode(binary, kernel, iterations=1)
+    binary = cv2.dilate(binary, kernel, iterations=1)
+
+    # Create a black mask with the same size as the image
+    mask = np.zeros_like(img[:,:,0])
+
+    # Find contours in the binary image
+    contours, hierarchy = cv2.findContours(binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    for c in contours:
+        x, y, w, h = cv2.boundingRect(c)
+        aspect_ratio = float(h) / w
+        area = cv2.contourArea(c)
+        #if aspect_ratio > 2 and area > 100 and area < 1000:
+        cv2.drawContours(mask, [c], -1, (255, 255, 255), -1)
+
+    mask = cv2.bitwise_not(mask)
+
+    result = cv2.bitwise_or(img, img, mask=mask)
+    
+    return result
+
+
+
+def facial_features_and_values(img_str):
+    original_image = cv2.imread(img_str)
+
+    # COLOR CORRECT THE IMAGE 
+    image = color_correct.color_correct(img_str)
+
+
+    # Detect all facial features
+    f = detect_facial_landmarks(image)   
+    eyeLeft = f[0]
+    eyeRight = f[1]
+    cheekLeft = f[3]
+    cheekRight = f[4]
+    forehead = f[5]
+    skinArr = [cheekLeft, cheekRight, forehead]
+
+
+    # SKIN undertone Lab values 
+    l_avg_skin, a_avg_skin, b_avg_skin = total_under_tone(skinArr)
+
+ 
+    # EYES 
+    eye_color, l_avg_eye, a_avg_eye, b_avg_eye, irisMask = find_iris(eyeLeft)
+    eye_color = (eye_color[2], eye_color[1], eye_color[0])
+    # print(eye_color)
+    
+    
+
+    # HAIR
+    threshold_value = 100
+    hairMask = get_hair_mask(image, threshold_value)
+    l_hair, a_hair, b_hair  = getLabColorSpace(hairMask)
+    if l_hair > 70:
+        # REDO THE HAIR MASK!!
+        threshold_value = 190
+        hairMask = get_hair_mask(image, threshold_value)
+        l_hair, a_hair, b_hair  = getLabColorSpace(hairMask)
+
+    top3colors = get_top_color(hairMask)
+
+    img = Image.new('RGB', (50, 50), eye_color)
+    img_np = np.array(img)
+
+    # cv2.imshow("HAIR", irisMask)
+    # cv2.imshow("Image", img_np)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
+
+
+    data = {'original_image': original_image, 
+               'color_corrected_image': image,
+               'eyeLeft': eyeLeft,
+               'eyeRight': eyeRight,
+               'cheekLeft': cheekLeft,
+               'cheekRight': cheekRight,
+               'forehead': forehead,
+               'skinLab': (l_avg_skin, a_avg_skin, b_avg_skin),
+               'eyeRGB': eye_color,
+               'eyeLab': (l_avg_eye, a_avg_eye, b_avg_eye),
+               'irisMask': irisMask,
+               'hairLab': (l_hair, a_hair, b_hair),
+               'hairColors': top3colors,
+               'hairMask': hairMask
+               }
+ 
+
+
+    return data
+
+img_str = "ChicagoFaceDatabaseImages/CFD-WF-038-021-N.jpg"
+img_str = "OurPhotos/DSC06481.JPG"
+facial_features_and_values(img_str)
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
