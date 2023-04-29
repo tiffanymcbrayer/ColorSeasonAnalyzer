@@ -140,7 +140,7 @@ def display_eye_info_HTML(filename, startImg, endImg):
     filename = filename + ".html"
     with open(filename, "w") as f:
         f.write(html)
-#display_eye_info_HTML("test", 200, 205)
+#display_eye_info_HTML("test", 215, 221)
 
 
 # Going through color correcting images and ording hair info 
@@ -179,12 +179,12 @@ def display_hair_info_HTML(filename, startImg, endImg):
 
         l_hair, a_hair, b_hair  = facial_features.getLabColorSpace(mask)
         if l_hair > 70:
-                # REDO THE HAIR MASK!!
-            threshold_value = 190
-            mask = facial_features.get_hair_mask(image, threshold_value)
+            # REDO THE HAIR MASK!! - was at 190
+            threshold_value = 120
+            mask = facial_features.get_hair_mask(cc_image, threshold_value)
             l_hair, a_hair, b_hair  = facial_features.getLabColorSpace(mask)
 
-        top3colors = facial_features.get_top_color(mask,num_colors=3)
+        top3colors = facial_features.get_top_color(mask,num_colors=3, value_threshold=25, inBGR=1)
 
         # Lab values, 
         data.append(((l_avg, a_avg, b_avg ),cc_image, mask, (l_hair, a_hair, b_hair), top3colors))
@@ -234,8 +234,8 @@ def display_hair_info_HTML(filename, startImg, endImg):
     filename = filename + ".html"
     with open(filename, "w") as f:
         f.write(html)
-
-#display_hair_info_HTML("test", 200, 205)
+#display_hair_info_HTML("test", 215, 221)
+#display_hair_info_HTML("test", 60, 66)
 
 
 
@@ -458,7 +458,7 @@ def create_HTML_file_all_features(filename, startImg, endImg, ours = False, colo
 
 # Use this function to look through the images in the ChicagoFaceDatabaseImages start-end
 # HTML filename, start img #, end img #, color_correct True or False
-create_HTML_file_all_features("test", 0, 5)
+create_HTML_file_all_features("test", 215, 221)
 
 
 
@@ -469,13 +469,11 @@ create_HTML_file_all_features("test", 0, 5)
 
 
 # Use this function to look through all the images in OurPhotos
-# imgList = ["DSC06469.JPG", "DSC06471.JPG", "DSC06473.JPG", "DSC06474.JPG","DSC06477.JPG",
-#            "DSC06479.JPG", "DSC06481.JPG", "DSC06483.JPG", "DSC06484.JPG", "DSC06488.JPG",
-#             "DSC06489.JPG", "DSC06491.JPG", "DSC06494.JPG"]
-# imgList = ["DSC06471.JPG","DSC06473.JPG","DSC06474.JPG","DSC06477.JPG","DSC06479.JPG","DSC06481.JPG",
-#            "DSC06483.JPG","DSC06484.JPG","DSC06488.JPG","DSC06489.JPG","DSC06491.JPG","DSC06494.JPG"]
-# # imgList = ["DSC06473.JPG", "DSC06474.JPG", "DSC06481.JPG"]
-# create_HTML_file_all_features_specific_our_photos("test_ours", imgList, True)
+imgList = ["DSC06469.JPG", "DSC06471.JPG", "DSC06473.JPG", "DSC06474.JPG","DSC06477.JPG",
+           "DSC06479.JPG", "DSC06481.JPG", "DSC06483.JPG", "DSC06484.JPG", "DSC06488.JPG",
+            "DSC06489.JPG", "DSC06491.JPG", "DSC06494.JPG"]
+#qqimgList = [ "DSC06481.JPG"]
+#create_HTML_file_all_features_specific_our_photos("test_ours", imgList, True)
 
 
 

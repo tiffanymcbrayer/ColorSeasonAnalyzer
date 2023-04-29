@@ -353,7 +353,7 @@ def find_intersection(line1_point1, line1_point2, line2_point1, line2_point2):
 
 
 # Right now getting top 3 colors in a mask 
-def get_top_color(mask, num_colors=3, value_threshold=30, inBGR=1):
+def get_top_color(mask, num_colors=3, value_threshold=25, inBGR=1):
     # Get top 3 most prominent colors in iris using color histogram, excluding black color
     hist = cv2.calcHist([mask], [0,1,2], None, [256,256,256], [0,256,0,256,0,256])
     hist_flatten = hist.flatten()
@@ -363,14 +363,15 @@ def get_top_color(mask, num_colors=3, value_threshold=30, inBGR=1):
     for ind in max_color_inds:
         bgr = np.unravel_index(ind, hist.shape)
         rgb = (bgr[2], bgr[1], bgr[0])
-        if len(top3colors) == 0:
-            top3colors.append(rgb)
-        else:
-            diff = np.abs(np.array(top3colors) - np.array(rgb))
-            if np.all(diff >= value_threshold):
+        if bgr[2] != bgr[1] and bgr[2] != bgr[0]:
+            if len(top3colors) == 0:
                 top3colors.append(rgb)
-        if len(top3colors) == num_colors:
-            break
+            else:
+                diff = np.abs(np.array(top3colors) - np.array(rgb))
+                if np.all(diff >= value_threshold):
+                    top3colors.append(rgb)
+            if len(top3colors) == num_colors:
+                break
     
    
     if inBGR:
@@ -580,17 +581,21 @@ def facial_features_and_values(img_str, ours, color_correct, inBGR):
     # HAIR
     threshold_value = 100
     hairMask = get_hair_mask(image, threshold_value)
+
     l_hair, a_hair, b_hair  = getLabColorSpace(hairMask)
     if l_hair > 70:
-        # REDO THE HAIR MASK!!
-        threshold_value = 190
+        # REDO THE HAIR MASK!! - was
+        threshold_value = 120
+        #threshold_value = 120
         hairMask = get_hair_mask(image, threshold_value)
         l_hair, a_hair, b_hair  = getLabColorSpace(hairMask)
 
-    if inBGR == 1: 
-        top3colors = get_top_color(hairMask, num_colors=3, value_threshold=25, inBGR=1)
-    else:
-        top3colors = get_top_color(hairMask, num_colors=3, value_threshold=25, inBGR=0)
+
+    top3colors = get_top_color(hairMask, num_colors=3, value_threshold=25, inBGR=0)
+    # if inBGR == 1: # 15 
+    #     top3colors = get_top_color(hairMask, num_colors=3, value_threshold=25, inBGR=0)
+    # else:
+    #     top3colors = get_top_color(hairMask, num_colors=3, value_threshold=25, inBGR=0)
     
 
     data = {'original_image': original_image, 
