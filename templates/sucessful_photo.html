@@ -2,6 +2,12 @@
 {% block content %}
 <script>
     let user_image = {{user_image|tojson}}
+    let forehead = {{forehead|tojson}}
+    let eyeLeft = {{eyeLeft|tojson}}
+    let eyeRight = {{eyeRight|tojson}}
+    let cheekLeft = {{cheekLeft|tojson}}
+    let cheekRight = {{cheekRight|tojson}}
+    let hairMask = {{hairMask|tojson}}
 </script>
 <body>
     <div class="container-fluid">
@@ -13,6 +19,16 @@
             </form>
             <h2>Photo uploaded sucessfully!</h2>
             <img src="{{ user_image }}" alt="User photo" width="611" height=429.5">
+        </div>
+        <div class="content">
+            <h2>Stuff</h2>
+                <td><img src="data:image/jpeg;base64,{{hairMask}}" width= "400" height="100"></td>
+                <br>
+                <td><img src="data:image/jpeg;base64,{{forehead}}"></td>
+                <br>
+                <td><img src="data:image/jpeg;base64,{{eyeLeft}}"></td> <b></b> <td><img src="data:image/jpeg;base64,{{eyeRight}}"></td>
+                <br>
+                <td><img class="pad_cheek" src="data:image/jpeg;base64,{{cheekLeft}}"></td> <b></b> <td><img src="data:image/jpeg;base64,{{cheekRight}}"></td>
         </div>
     </div>
 </body>

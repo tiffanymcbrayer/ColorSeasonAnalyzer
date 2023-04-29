@@ -340,7 +340,7 @@ def display_all_features_HTML(img_str, counter, ours, color_correct, inBGR):
     return rows
 
 
-def create_HTML_file_all_features_specific_our_photos(filename, imgList, ours = True, color_correct = True, inBGR = 1):
+def create_HTML_file_all_features_specific_our_photos(filename, foldername, imgList, ours = True, color_correct = True, inBGR = 1):
     # Create an HTML template for displaying the images
     html_template = '''
     <!DOCTYPE html>
@@ -361,7 +361,7 @@ def create_HTML_file_all_features_specific_our_photos(filename, imgList, ours = 
     counter = 0
     # Process the files in order
     for img_str in imgList:
-        img_str = "OurPhotos/" + img_str
+        img_str = foldername + img_str
         img_HTML_rows = display_all_features_HTML(img_str, counter, ours, color_correct, inBGR = 1)
         rows += img_HTML_rows
         print(counter)
@@ -458,7 +458,7 @@ def create_HTML_file_all_features(filename, startImg, endImg, ours = False, colo
 
 # Use this function to look through the images in the ChicagoFaceDatabaseImages start-end
 # HTML filename, start img #, end img #, color_correct True or False
-create_HTML_file_all_features("test", 215, 221)
+# create_HTML_file_all_features("test", 0, 5)
 
 
 
@@ -469,11 +469,13 @@ create_HTML_file_all_features("test", 215, 221)
 
 
 # Use this function to look through all the images in OurPhotos
-imgList = ["DSC06469.JPG", "DSC06471.JPG", "DSC06473.JPG", "DSC06474.JPG","DSC06477.JPG",
-           "DSC06479.JPG", "DSC06481.JPG", "DSC06483.JPG", "DSC06484.JPG", "DSC06488.JPG",
-            "DSC06489.JPG", "DSC06491.JPG", "DSC06494.JPG"]
-#qqimgList = [ "DSC06481.JPG"]
-#create_HTML_file_all_features_specific_our_photos("test_ours", imgList, True)
+# imgList = ["DSC06469.JPG", "DSC06471.JPG", "DSC06473.JPG", "DSC06474.JPG","DSC06477.JPG",
+#            "DSC06479.JPG", "DSC06481.JPG", "DSC06483.JPG", "DSC06484.JPG", "DSC06488.JPG",
+#             "DSC06489.JPG", "DSC06491.JPG", "DSC06494.JPG"]
+# imgList = ["DSC06471.JPG","DSC06473.JPG","DSC06474.JPG","DSC06477.JPG","DSC06479.JPG","DSC06481.JPG",
+#            "DSC06483.JPG","DSC06484.JPG","DSC06488.JPG","DSC06489.JPG","DSC06491.JPG","DSC06494.JPG"]
+# imgList = ["DSC06473.JPG", "DSC06474.JPG", "DSC06481.JPG"]
+# create_HTML_file_all_features_specific_our_photos("test_ours", "OurPhotos/", imgList, True)
 
 
 
