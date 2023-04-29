@@ -452,13 +452,13 @@ def create_HTML_file_all_features(filename, startImg, endImg, ours = False, colo
         f.write(html)
      
 #imgage_str = "ColorCorrectedImages/CCF35.jpg"
-# displayAllFeatures_HTML("./test", 211, 221)
+# displayAllFeatures_HTML("./test", 0, 5)
 
 
 
 # Use this function to look through the images in the ChicagoFaceDatabaseImages start-end
 # HTML filename, start img #, end img #, color_correct True or False
-# create_HTML_file_all_features("test", 0, 5)
+create_HTML_file_all_features("test", 220, 230)
 
 
 
@@ -472,9 +472,9 @@ def create_HTML_file_all_features(filename, startImg, endImg, ours = False, colo
 # imgList = ["DSC06469.JPG", "DSC06471.JPG", "DSC06473.JPG", "DSC06474.JPG","DSC06477.JPG",
 #            "DSC06479.JPG", "DSC06481.JPG", "DSC06483.JPG", "DSC06484.JPG", "DSC06488.JPG",
 #             "DSC06489.JPG", "DSC06491.JPG", "DSC06494.JPG"]
-# imgList = ["DSC06471.JPG","DSC06473.JPG","DSC06474.JPG","DSC06477.JPG","DSC06479.JPG","DSC06481.JPG",
-#            "DSC06483.JPG","DSC06484.JPG","DSC06488.JPG","DSC06489.JPG","DSC06491.JPG","DSC06494.JPG"]
-# imgList = ["DSC06473.JPG", "DSC06474.JPG", "DSC06481.JPG"]
+# # imgList = ["DSC06471.JPG","DSC06473.JPG","DSC06474.JPG","DSC06477.JPG","DSC06479.JPG","DSC06481.JPG",
+# #            "DSC06483.JPG","DSC06484.JPG","DSC06488.JPG","DSC06489.JPG","DSC06491.JPG","DSC06494.JPG"]
+# # imgList = ["DSC06473.JPG", "DSC06474.JPG", "DSC06481.JPG"]
 # create_HTML_file_all_features_specific_our_photos("test_ours", "OurPhotos/", imgList, True)
 
 
