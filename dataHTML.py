@@ -451,11 +451,8 @@ def create_HTML_file_all_features(filename, startImg, endImg, ours = False, colo
     with open(filename, "w") as f:
         f.write(html)
      
-<<<<<<< Updated upstream
-=======
 #imgage_str = "ColorCorrectedImages/CCF35.jpg"
-displayAllFeatures_HTML("./test", 211, 221)
->>>>>>> Stashed changes
+# displayAllFeatures_HTML("./test", 211, 221)
 
 
 
