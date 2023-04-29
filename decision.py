@@ -10,6 +10,7 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import Flatten
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.models import load_model
 
 import facial_features as ff
 
@@ -21,7 +22,7 @@ def read_data(r=True):
     valid_targets = ['0','1','2','3']
     f = open(data,'r')
     count = 0
-    f2 = open('patterns2.txt','r')
+    f2 = open('patterns3.txt','r')
     f2_lines = f2.readlines()
     for line in f.readlines():
         if count == 0:
@@ -37,9 +38,9 @@ def read_data(r=True):
                     targets.append(int(x))
                     #get patterns
                     # avgUndertone, eye_color_r, eye_color_g, eye_color_b, l_eye, a_eye, b_eye, hair_color_r, hair_color_g, hair_color_b, l_hair, a_hair, b_hair = f2_lines[id].split()
-                    skin_L, skin_A, skin_B, eye_r, eye_g, eye_b, eye_L, eye_A, eye_B, hair_L, hair_A, hair_B, hair_r1, hair_g1, hair_b1, hair_r2, hair_g2, hair_b2, hair_r3, hair_g3, hair_b3 = f2_lines[id+1].split()
-                    # patterns.append(f2_lines[id+1].split())
-                    patterns.append([skin_A, skin_B, eye_r, eye_g, eye_b, hair_r1, hair_g1, hair_b1])
+                    # skin_L, skin_A, skin_B, eye_r, eye_g, eye_b, eye_L, eye_A, eye_B, hair_L, hair_A, hair_B, hair_r1, hair_g1, hair_b1, hair_r2, hair_g2, hair_b2, hair_r3, hair_g3, hair_b3 = f2_lines[id+1].split()
+                    patterns.append(f2_lines[id+1].split())
+                    # patterns.append([skin_A, skin_B, eye_r, eye_g, eye_b, hair_r1, hair_g1, hair_b1])
                     
         count += 1
 
@@ -87,8 +88,8 @@ def nn():
     print(test_data.shape, test_targets.shape)
 
     network = Sequential()
-    network.add(Flatten(input_shape=(8,)))
-    network.add(Dense(30, activation='relu', name='hidden', input_shape=(8,)))
+    network.add(Flatten(input_shape=(21,)))
+    network.add(Dense(30, activation='relu', name='hidden', input_shape=(21,)))
     network.add(Dense(16, activation='relu', name='hidden2', kernel_regularizer=tf.keras.regularizers.l2(0.001)))
     network.add(Dense(4, activation='softmax', name='output'))
     network.compile(loss=tf.keras.losses.CategoricalCrossentropy(), optimizer='adam', metrics=['accuracy'])
@@ -103,7 +104,24 @@ def nn():
     network.evaluate(train_data,train_targets)
     print('testing_data_eval')
     network.evaluate(test_data,test_targets)
+    network.save('predict_season.h5')
     return history, network
+
+def predict_image(image):
+    data = ff.facial_features_and_values(image, True, True, 1)
+    network = load_model('predict_season.h5')
+    test_data = [
+            data['skinLab'][0], data['skinLab'][1], data['skinLab'][2],
+            data['eyeRGB'][0], data['eyeRGB'][1], data['eyeRGB'][2],
+            data['eyeLab'][0], data['eyeLab'][1], data['eyeLab'][2],
+            data['hairLab'][1], data['hairLab'][1], data['hairLab'][2],
+            data['hairColors'][0][0], data['hairColors'][0][1], data['hairColors'][0][2],
+            data['hairColors'][1][0], data['hairColors'][1][1], data['hairColors'][1][2],
+            data['hairColors'][2][0], data['hairColors'][2][1], data['hairColors'][2][2]
+    ]
+    batch = np.array(test_data).reshape((1,21))
+    output = network.predict(batch)
+    return np.argmax(output)
 
 #old
 def get_pattern(image):
@@ -125,11 +143,11 @@ def get_pattern(image):
     return [avgUndertone, eye_color[0], eye_color[1], eye_color[2], l_eye, a_eye, b_eye, hair_color[0], hair_color[1], hair_color[2], l_hair, a_hair, b_hair]
 
 def write_pattern():
-    file = open('patterns2.txt','w')
+    file = open('patterns3.txt','w')
     count = 0
     file.write("skin_L skin_A skin_B eye_r eye_g eye_b eye_L eye_A eye_B hair_L hair_A hair_B hair_r1 hair_g1 hair_b1 hair_r2 hair_g2 hair_b2 hair_r3 hair_g3 hair_b3\n")
     for image in glob.glob("./ChicagoFaceDatabaseImages/*.jpg"):
-        data = ff.facial_features_and_values(image)
+        data = ff.facial_features_and_values(image, False, True, 1)
         file.write("{:f} {:f} {:f} {:d} {:d} {:d} {:f} {:f} {:f} {:f} {:f} {:f} {:d} {:d} {:d} {:d} {:d} {:d} {:d} {:d} {:d} \n".format(
             data['skinLab'][0], data['skinLab'][1], data['skinLab'][2],
             data['eyeRGB'][0], data['eyeRGB'][1], data['eyeRGB'][2],
@@ -145,7 +163,7 @@ def write_pattern():
         # for item in p:
         #     file.write(str(item) + " ")
         # file.write('\n')
-        # if count == 5:
+        # if count == 2:
         #     break
         count += 1
     file.close()
