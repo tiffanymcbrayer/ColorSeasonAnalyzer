@@ -1,0 +1,27 @@
+{% extends "layout.html" %} 
+{% block content %}
+<body>
+    <div class="container-fluid">
+        <div class="content">
+            <h1>Color Analyzer</h1>
+            <p class="padding_front_pg">Our team, consisting of Aaron Ashery, Alexandra Long, 
+                and Tiffany McBrayer, is developing a program for personal 
+                color palette analysis for our Visual Interfaces project. 
+                With the rise in popularity of TikTok and other social media 
+                platforms, color analysis for personal style has gained 
+                renewed interest. Normally, individuals interested in this 
+                assessment would receive a consultation by a professional 
+                color analyst or read articles online that explain the best 
+                shades to wear for their features namely, eye color, hair color, 
+                and skin tone. By developing this program we could add some 
+                accessibility to the color analysis service as well as make 
+                the process more efficient.
+            </p>
+            <form method="POST" action="{{ url_for('submit_form') }}">
+                <button type="submit" name="nextpg" class="btn btn-primary">Try it out!</button>
+                <input type="hidden" name="action" value="submit">
+            </form>
+        </div>
+    </div>
+</body>
+{% endblock %}
