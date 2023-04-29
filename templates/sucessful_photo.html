@@ -1,0 +1,19 @@
+{% extends "layout.html" %} 
+{% block content %}
+<script>
+    let user_image = {{user_image|tojson}}
+</script>
+<body>
+    <div class="container-fluid">
+        <div class="middle-content">
+            <h2>Please upload a headshot with bright lighting in front of a white backgroud. <b></b> Upload on a .jpg filetype.</h2>
+            <form method="POST" enctype="multipart/form-data" action="{{ url_for('upload_photo') }}">
+                <input type="file" name="upload"accept="*.jpg"/>
+                <input type="submit" value="Submit">
+            </form>
+            <h2>Photo uploaded sucessfully!</h2>
+            <img src="{{ user_image }}" alt="User photo" width="611" height=429.5">
+        </div>
+    </div>
+</body>
+{% endblock %}
