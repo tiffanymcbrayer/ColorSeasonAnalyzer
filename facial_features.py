@@ -126,10 +126,10 @@ def find_iris(eyeMask):
     x, y, w, h = cv2.boundingRect(gray_eyeMask)
     
     # Make iris section bounding box
-    y_mod = round(y + (3.25*(h/6)))
+    y_mod = round(y + (4*(h/6)))
     x_mod = round(x + (1.5*(w/4)))
     
-    x_diff = round(x_mod + (w/4))
+    x_diff = round(x_mod + 1.05*(w/4))
     y_diff = round(y_mod + .75*(h/6))
     
     # Get iris section from eyeMask
