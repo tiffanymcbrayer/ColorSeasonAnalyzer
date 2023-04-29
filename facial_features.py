@@ -5,13 +5,16 @@ import numpy as np
 import glob
 from PIL import Image
 import color_correct
-from skimage.feature import local_binary_pattern
+import matplotlib.pyplot as plt
+import rawpy
+import imageio
 
 
 #def detect_facial_landmarks(img_path):
 def detect_facial_landmarks(image):
     # Load the image and convert it to grayscale
     #image = cv2.imread(img_path)
+
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     detector = dlib.get_frontal_face_detector()
@@ -148,24 +151,18 @@ def find_iris(eyeMask):
     return (eye_color, lVal, aVal, bVal, irisMask)
     #return eye_color
 
-# def getLabColorSpace(mask):
-#     # Convert irisMask to Lab color space
-#     lab_mask = cv2.cvtColor(mask, cv2.COLOR_BGR2LAB)
-
-#     # Split into L, a, and b channels
-#     L_channel, a_channel, b_channel = cv2.split(lab_mask)
-#     lValue = np.mean(L_channel)
-#     aValue = np.mean(a_channel)
-#     bValue = np.mean(b_channel)
-
-#     return (lValue, aValue, bValue)
-    
-# Undertone from Lab color space 
-#def under_tone(img):
+"""
+0 > L > 100 ⇒ OpenCV range = L*255/100 (1 > L > 255)
+-127 > a > 127 ⇒ OpenCV range = a + 128 (1 > a > 255)
+-127 > b > 127 ⇒ OpenCV range = b + 128 (1 > b > 255)
+"""
 def getLabColorSpace(img):
     # Convert RGB to LAB
     img_lab = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
     mask = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+
+    # img_lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+    # mask = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     # Split into L, a, and b channels
     L_channel, a_channel, b_channel = cv2.split(img_lab)
@@ -180,7 +177,6 @@ def getLabColorSpace(img):
     l_avg = np.mean(l_values)
     a_avg = np.mean(a_values)
     b_avg = np.mean(b_values)
-
 
     return (l_avg, a_avg, b_avg)
 
@@ -356,7 +352,7 @@ def find_intersection(line1_point1, line1_point2, line2_point1, line2_point2):
 
 
 # Right now getting top 3 colors in a mask 
-def get_top_color(mask, num_colors=3, value_threshold=10, inBGR=1):
+def get_top_color(mask, num_colors=3, value_threshold=30, inBGR=1):
     # Get top 3 most prominent colors in iris using color histogram, excluding black color
     hist = cv2.calcHist([mask], [0,1,2], None, [256,256,256], [0,256,0,256,0,256])
     hist_flatten = hist.flatten()
@@ -500,16 +496,55 @@ def get_hair_mask(image, threshold_value):
     mask = cv2.bitwise_not(mask)
 
     result = cv2.bitwise_or(img, img, mask=mask)
-    
+
+    # Convert image to grayscale
+    gray = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
+
+    # Apply a threshold to create a binary image
+    ret, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY)
+
+    # Find contours in the binary image
+    contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    # Find the minimum bounding box for each contour
+    min_bbox_list = []
+    for contour in contours:
+        # Get the minimum bounding rectangle of the contour
+        bbox = cv2.minAreaRect(contour)
+        min_bbox_list.append(bbox)
+
+    # Draw the minimum bounding boxes on the original image
+    for bbox in min_bbox_list:
+        # Get the corner points of the bounding box
+        box = cv2.boxPoints(bbox)
+        box = np.int0(box)
+
+        # Sort the corner points based on their x and y coordinates
+        x_sorted = sorted(box[:, 0])
+        y_sorted = sorted(box[:, 1])
+        x1, y1 = x_sorted[0], y_sorted[0]
+        x2, y2 = x_sorted[-1], y_sorted[-1]
+        cropped_img = result[y1:y2, x1:x2]
+
+
+    # Show the result
+    # cv2.imshow('Result', cropped_img)
+    # cv2.waitKey(0)
+
+
+
     return result
 
 
 
-def facial_features_and_values(img_str):
+def facial_features_and_values(img_str, color_corrected):
     original_image = cv2.imread(img_str)
 
     # COLOR CORRECT THE IMAGE 
-    image = color_correct.color_correct(img_str)
+    if color_corrected == 1:
+        image = color_correct.color_correct(img_str)
+    else:
+        image = cv2.imread(img_str)
 
 
     # Detect all facial features
@@ -528,8 +563,7 @@ def facial_features_and_values(img_str):
  
     # EYES 
     eye_color, l_avg_eye, a_avg_eye, b_avg_eye, irisMask = find_iris(eyeLeft)
-    eye_color = (eye_color[2], eye_color[1], eye_color[0])
-    print(eye_color)
+    #eye_color = (eye_color[2], eye_color[1], eye_color[0])
     
     
 
@@ -545,13 +579,6 @@ def facial_features_and_values(img_str):
 
     top3colors = get_top_color(hairMask)
 
-    img = Image.new('RGB', (50, 50), eye_color)
-    img_np = np.array(img)
-
-    # cv2.imshow("HAIR", irisMask)
-    # cv2.imshow("Image", img_np)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
 
 
     data = {'original_image': original_image, 
@@ -573,21 +600,3 @@ def facial_features_and_values(img_str):
 
 
     return data
-
-img_str = "ChicagoFaceDatabaseImages/CFD-WF-038-021-N.jpg"
-img_str = "OurPhotos/DSC06481.JPG"
-facial_features_and_values(img_str)
-
-
-
-
-
-
-
-
-
-
-
-    
-
-
