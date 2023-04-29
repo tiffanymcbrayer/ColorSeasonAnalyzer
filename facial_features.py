@@ -370,7 +370,8 @@ def get_top_color(mask, num_colors=3, value_threshold=30, inBGR=1):
                 top3colors.append(rgb)
         if len(top3colors) == num_colors:
             break
-
+    
+   
     if inBGR:
         top3colors = [c[::-1] for c in top3colors]
     return top3colors
@@ -537,14 +538,18 @@ def get_hair_mask(image, threshold_value):
 
 
 
-def facial_features_and_values(img_str, color_corrected):
+def facial_features_and_values(img_str, color_corrected, inBGR):
     original_image = cv2.imread(img_str)
+    
 
     # COLOR CORRECT THE IMAGE 
     if color_corrected == 1:
         image = color_correct.color_correct(img_str)
     else:
         image = cv2.imread(img_str)
+
+    # if inBGR == 1:
+    #     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
 
     # Detect all facial features
@@ -563,7 +568,7 @@ def facial_features_and_values(img_str, color_corrected):
  
     # EYES 
     eye_color, l_avg_eye, a_avg_eye, b_avg_eye, irisMask = find_iris(eyeLeft)
-    #eye_color = (eye_color[2], eye_color[1], eye_color[0])
+    eye_color = (eye_color[2], eye_color[1], eye_color[0])
     
     
 
@@ -577,9 +582,11 @@ def facial_features_and_values(img_str, color_corrected):
         hairMask = get_hair_mask(image, threshold_value)
         l_hair, a_hair, b_hair  = getLabColorSpace(hairMask)
 
-    top3colors = get_top_color(hairMask)
-
-
+    if inBGR == 1: 
+        top3colors = get_top_color(hairMask, num_colors=3, value_threshold=25, inBGR=1)
+    else:
+        top3colors = get_top_color(hairMask, num_colors=3, value_threshold=25, inBGR=0)
+    
 
     data = {'original_image': original_image, 
                'color_corrected_image': image,
