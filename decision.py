@@ -275,30 +275,37 @@ def predict_image(image, data=None):
         data = ff.facial_features_and_values(image, True, True, 1)
 
     test_data = [
-        data["skinLab"][0],
+        # data["skinLab"][0],
         data["skinLab"][1],
         data["skinLab"][2],
         data["eyeRGB"][0],
         data["eyeRGB"][1],
         data["eyeRGB"][2],
         data["eyeLab"][0],
-        data["eyeLab"][1],
-        data["eyeLab"][2],
-        data["hairLab"][1],
-        data["hairLab"][1],
-        data["hairLab"][2],
+        # data["eyeLab"][1],
+        # data["eyeLab"][2],
+        data["hairLab"][0],
+        # data["hairLab"][1],
+        # data["hairLab"][2],
         data["hairColors"][0][0],
         data["hairColors"][0][1],
         data["hairColors"][0][2],
-        data["hairColors"][1][0],
-        data["hairColors"][1][1],
-        data["hairColors"][1][2],
-        data["hairColors"][2][0],
-        data["hairColors"][2][1],
-        data["hairColors"][2][2],
+        # data["hairColors"][1][0],
+        # data["hairColors"][1][1],
+        # data["hairColors"][1][2],
+        # data["hairColors"][2][0],
+        # data["hairColors"][2][1],
+        # data["hairColors"][2][2],
     ]
     test_data = normalize_data(test_data)
-    batch = np.array(test_data).reshape((1, 21))  # fix
+    feature_index = 0
+    weight = 2.0
+    feature_index2 = 1
+    weight2 = 1.0
+
+    test_data[:, feature_index] *= weight
+    test_data[:, feature_index2] *= weight2
+    batch = np.array(test_data).reshape((1, 10))  # fix
     output = network.predict(batch)
     return np.argmax(output)
 
@@ -362,6 +369,14 @@ def normalize_data(data):
 def test_all(file="network2.h5"):
     model = load(file)
     patterns, targets = read_our_data()
+    feature_index = 0
+    weight = 2.0
+    feature_index2 = 1
+    weight2 = 1.0
+
+    patterns = normalize_data(patterns)
+    patterns[:, feature_index] *= weight
+    patterns[:, feature_index2] *= weight2
     outputs = model.predict(patterns)
     correct = 0
     for i in range(len(outputs)):
