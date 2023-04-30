@@ -1,0 +1,14 @@
+OurColorCorrectedImages	Us
+0	0
+1	0
+2	0
+3	0
+4	3
+5	0
+6	1
+7	2
+8	3
+9	2
+10	1
+11	2
+12	3
