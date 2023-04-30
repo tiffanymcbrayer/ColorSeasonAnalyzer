@@ -10,7 +10,7 @@ import rawpy
 import get_background
 
 import typing as npt
-from typing import List
+from typing import List, Tuple
 
 
 def detect_facial_landmarks(image: np.ndarray) -> List[np.ndarray]:
@@ -197,14 +197,8 @@ def find_iris(eyeMask):
     # return eye_color
 
 
-"""
-0 > L > 100 ⇒ OpenCV range = L*255/100 (1 > L > 255)
--127 > a > 127 ⇒ OpenCV range = a + 128 (1 > a > 255)
--127 > b > 127 ⇒ OpenCV range = b + 128 (1 > b > 255)
-"""
 
-
-def getLabColorSpace(img: np.ndarray) -> List[int]:
+def getLabColorSpace(img: np.ndarray) -> Tuple[int]:
     """
     This function takes an RGB image as input and converts it to the LAB color space. 
     It then extracts the L, a, and b channels of the LAB image and calculates the average values of the a and b channels, 
@@ -217,16 +211,13 @@ def getLabColorSpace(img: np.ndarray) -> List[int]:
     
     Returns:
     -------
-    lab_avg : List[int]
+    lab_avg : Tuple[int]
         Tuple of the average L, a, and b values
     """
 
     # Convert RGB to LAB
     img_lab = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
     mask = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-
-    # img_lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
-    # mask = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     # Split into L, a, and b channels
     L_channel, a_channel, b_channel = cv2.split(img_lab)
@@ -248,7 +239,21 @@ def getLabColorSpace(img: np.ndarray) -> List[int]:
 
 # Return the undertone using the 3 swatches - left cheek, right cheek, and forehead
 # higher a* value would indicate a cooler or pinker undertone, while a lower a* value would indicate a warmer or yellower undertone.
-def total_under_tone(imgArr):
+def total_under_tone(imgArr: List[np.ndarray]) -> Tuple[int]:
+    """
+    This function calculates the undertone of an image by taking three image swatches (left cheek, right cheek, and forehead) 
+    and calculating the average LAB color values of each swatch. It then returns the average LAB values as a tuple.
+
+    Parameters:
+    ----------
+    imgArr : List[np.ndarray] 
+        List of a 3-dimensional NumPy array representing an RGB image.
+    
+    Returns:
+    -------
+    lab_avg : Tuple[int]
+        Tuple of the average L, a, and b values
+    """
     l_tot = 0
     a_tot = 0
     b_tot = 0
