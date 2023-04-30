@@ -13,6 +13,7 @@
     <div class="container-fluid">
         <div class="middle-content">
             <h2>Please upload a headshot with bright lighting in front of a white backgroud. <b></b> Upload on a .jpg filetype.</h2>
+            <br>
             <form method="POST" enctype="multipart/form-data" action="{{ url_for('upload_photo') }}">
                 <input type="file" name="upload"accept="*.jpg"/>
                 <input type="submit" value="Submit">
@@ -29,7 +30,19 @@
                 <td><img src="data:image/jpeg;base64,{{eyeLeft}}"></td> <b></b> <td><img src="data:image/jpeg;base64,{{eyeRight}}"></td>
                 <br>
                 <td><img class="pad_cheek" src="data:image/jpeg;base64,{{cheekLeft}}"></td> <b></b> <td><img src="data:image/jpeg;base64,{{cheekRight}}"></td>
+                <br>
+                <div class="padding text-center" id="place" style="background-color: white;">
+                    <h2>Click here to get your color analysis!</h2>
+                    <form method="POST" action="{{ url_for('color_analysis') }}">
+                        <button type="submit" name="c_a" class="btn btn-primary">Analyze Me</button>
+                        <input type="hidden" name="action" value="submit">
+                    </form>
+                </div>
         </div>
     </div>
+    <form method="POST" action="{{ url_for('back') }}">
+        <button type="submit" name="back" class="btn btn-primary backbutton">Back</button>
+        <input type="hidden" name="action" value="submit">
+    </form>
 </body>
 {% endblock %}
