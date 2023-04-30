@@ -3,6 +3,7 @@ import cv2
 import glob
 import numpy.typing as npt
 
+
 def color_corrector(image) -> None:
     """This function is to color correct all original photos from the Chicago Face Database. This is mainly using the algorithm from
     https://stackoverflow.com/questions/70876252/how-to-do-color-cast-removal-or-color-coverage-in-python on how to remove color cast
@@ -13,7 +14,9 @@ def color_corrector(image) -> None:
     # resizing img to fit in window
     cv_img = cv2.imread(image)
     scale = 0.5
-    resized_img = cv2.resize(cv_img, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
+    resized_img = cv2.resize(
+        cv_img, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA
+    )
     hsv_img = cv2.cvtColor(resized_img, cv2.COLOR_BGR2HSV)
     # og resized img
     # cv2.imshow("Resized Image", resized_img)
@@ -32,12 +35,15 @@ def color_corrector(image) -> None:
     # blending constant color image and og image together
     blended_img = cv2.addWeighted(resized_img, 0.5, avg_img, 0.5, 0)
     # normalizing image
-    final_img= cv2.normalize(blended_img, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
+    final_img = cv2.normalize(blended_img, None, 0, 255, cv2.NORM_MINMAX).astype(
+        np.uint8
+    )
     # cv2.imshow("Color Corrected Image", final_img)
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
     return final_img
-        
+
+
 def color_correct_all():
     count = 0
     for image in glob.glob("./ChicagoFaceDatabaseImages/*.jpg"):
