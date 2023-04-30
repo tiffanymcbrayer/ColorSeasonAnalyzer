@@ -494,7 +494,8 @@ def create_HTML_file_all_features(
 
 # Use this function to look through the images in the ChicagoFaceDatabaseImages start-end
 # HTML filename, start img #, end img #, color_correct True or False
-create_HTML_file_all_features("test", 220, 230)
+# create_HTML_file_all_features("test", 220, 230)
+
 
 
 # Use this function to look at one specific image

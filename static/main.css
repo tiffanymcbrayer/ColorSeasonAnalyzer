@@ -42,13 +42,25 @@
     margin-left: 30px;
 } */
 
+#my-element {
+    position: absolute;
+    top: 300px;
+    left: 100px;
+  }
+
+#place {
+    position: absolute;
+    top: 700px;
+    right: 40px;
+}
 html, body {
+    background-color: #ADADAD;
     height: 100%;
     margin: 0;
 }
 
 div {
-    background-color:#DCAE96;
+    background-color:#83677B;
     width: 50%;
     float: left;
 }
@@ -67,6 +79,12 @@ div {
     height: 100vh;
     border-radius: 30px;
 }
+
+p {
+    font-size: 20px;
+    line-height: 1.5;
+    padding-bottom: 0px;
+  }
 
 .btn-primary {
     display: inline-block;
@@ -100,12 +118,58 @@ div h2 {
     font-size: 20px;
 }
 div h1 {
-    font: 400 80px/0.8 'Great Vibes', Helvetica, sans-serif;
-    color: #a67e7e;
-    text-shadow: 4px 4px 3px rgba(0,0,0,0.1); 
+    font-family: 'Montserrat', sans-serif;
+    font-size: 48px;
+    font-weight: bold;
+    color: #83677B;
+    text-align: center;
+    margin-top: 50px;
+    margin-bottom: 50px;
 }
 
 .padding_front_pg {
     padding-top: 150px;
-    padding-bottom: 150px;
+    padding-bottom: 100px;
+}
+
+.backbutton {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+}
+
+.padding {
+    padding-top: 30px;
+    padding-bottom: 30px;
+}
+
+.padding-swatches {
+    padding-top: 100px;
+    padding-bottom: 30px;
+    padding-left: 00px;
+    padding-right: 200px;
+}
+
+.results {
+    background-color: white;
+    width: 100%;
+    height: 400px;
+    margin: auto;
+    margin-top: 100px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.color-circle {
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+    padding: 5px;
 }
