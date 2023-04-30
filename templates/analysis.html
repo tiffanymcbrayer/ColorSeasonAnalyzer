@@ -1,0 +1,35 @@
+{% extends "layout.html" %} 
+{% block content %}
+<script>
+    let predict = {{predict|tojson}}
+    let color_swatches = {{color_swatches|tojson}}
+</script>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div id="my-element" class="card text-center p-3">
+                    <h2>You are a {{ predict }}!</h2>
+                    <hr>
+                    <h2>Here are the color swatches that match your features.</h2>
+                </div>
+            </div>
+        </div>
+        <div class="padding text-center" ></div>
+        <div class="row text-center padding-swatches" style="background-color: white; padding: 50px; border-radius: 10px; margin-top: 50px;">
+            {% for color, code in color_swatches.items() %}
+                <div class="col-sm-6 col-md-4 col-lg-3 mb-4" style="background-color: white;">
+                    <div class="d-flex justify-content-center align-items-center mb-2" style="background-color: {{ code }}; width: 50%; height: 50px; border-radius: 50%;">
+                        <span class="sr-only">{{ color }}</span>
+                    </div>
+                    <h4 class="text-center" style="font-size: 10px">{{ color }}</h4>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <form method="POST" action="{{ url_for('back') }}">
+        <button type="submit" name="back" class="btn btn-primary backbutton">Home</button>
+        <input type="hidden" name="action" value="submit">
+    </form>
+</body>
+{% endblock %}
