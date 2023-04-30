@@ -112,11 +112,13 @@ def read_data(r=True):
         test_data2.append(d)
     test_data = np.array(test_data2)
 
+    f.close()
+    f2.close()
     return train_data, train_targets, test_data, test_targets
 
 
 def read_our_data():
-    f2 = open("ourPatterns.txt", "r")
+    f2 = open("ourPatterns2.txt", "r")
     f = open("ourTargets.txt", "r")
     count = 0
     f2_lines = f2.readlines()
@@ -179,6 +181,8 @@ def read_our_data():
     patterns = np.array(patterns, dtype=float)
     targets = np.array(targets)
     targets = to_categorical(targets)
+    f2.close()
+    f.close()
     return patterns, targets
 
 
@@ -188,40 +192,56 @@ def augment_data(patterns, targets):
     num_samples, num_features = patterns.shape
     shift_range = 3
     for i in range(len(patterns)):
-        for _ in range(10):
+        for _ in range(8): #mess here 10 was best
             random_shift = np.random.uniform(-shift_range, shift_range, num_features)
             shifted_sample = patterns[i] + random_shift
             new_patterns.append(shifted_sample)
             new_targets.append(targets[i])
 
-        new_patterns.append(patterns[i])
-        new_targets.append(targets[i])
+        # new_patterns.append(patterns[i])
+        # new_targets.append(targets[i])
     return np.array(new_patterns), np.array(new_targets)
 
-
-def nn(e=150, file="predict_season.h5"):
+def get_training_data(predict_data=None):
     train_data, train_targets, test_data, test_targets = read_data()
-    print(train_data.shape, train_targets.shape)
+    # print(train_data.shape, train_targets.shape)
     our_patterns, our_targets = read_our_data()
     our_patterns, our_targets = augment_data(our_patterns, our_targets)
     train_data = np.concatenate((train_data, our_patterns), axis=0)
     train_targets = np.concatenate((train_targets, our_targets), axis=0)
     # print(train_data[0])
-    train_data, test_data = normalize_data(train_data), normalize_data(test_data)
-    # print(train_data[0])
-    print(train_data.shape, train_targets.shape)
-    # print(test_data.shape, test_targets.shape)
+    full_data = np.concatenate((train_data,test_data),axis=0)
+    full_data_normal = normalize_data(full_data)
+    # train_data, test_data = normalize_data(train_data), normalize_data(test_data)
+    
+    train_data = full_data_normal[:len(train_targets)]
+    test_data = full_data_normal[len(train_targets):]
 
     smote = SMOTE(random_state=42)
     train_data, train_targets = smote.fit_resample(train_data, train_targets)
-    print(train_data.shape, train_targets.shape)
+    # print(train_data.shape, train_targets.shape)
     feature_index = 0
-    weight = 2.0
+    weight = 1.0 #2 was best
     feature_index2 = 1
     weight2 = 1.0
 
     train_data[:, feature_index] *= weight
     train_data[:, feature_index2] *= weight2
+
+    prepared_data_normal = []
+    if predict_data is not None:
+        #assume in batch state already
+        prepared_full_data = np.concatenate((predict_data,full_data),axis=0)
+        prepared_full_data_normal = normalize_data(prepared_full_data)
+        prepared_data_normal = prepared_full_data_normal[:len(predict_data)]
+        prepared_data_normal[:, feature_index] *= weight
+        prepared_data_normal[:, feature_index2] *= weight2
+
+    return train_data, train_targets, test_data, test_targets, prepared_data_normal
+
+
+def nn(e=150, file="predict_season.h5"):
+    train_data, train_targets, test_data, test_targets,_ = get_training_data()
 
     network = Sequential()
     network.add(Flatten(input_shape=(10,)))
@@ -278,12 +298,12 @@ def predict_image(image, data=None):
         # data["skinLab"][0],
         data["skinLab"][1],
         data["skinLab"][2],
-        data["eyeRGB"][0],
-        data["eyeRGB"][1],
-        data["eyeRGB"][2],
         data["eyeLab"][0],
         # data["eyeLab"][1],
         # data["eyeLab"][2],
+        data["eyeRGB"][0],
+        data["eyeRGB"][1],
+        data["eyeRGB"][2],
         data["hairLab"][0],
         # data["hairLab"][1],
         # data["hairLab"][2],
@@ -297,16 +317,24 @@ def predict_image(image, data=None):
         # data["hairColors"][2][1],
         # data["hairColors"][2][2],
     ]
-    test_data = normalize_data(test_data)
-    feature_index = 0
-    weight = 2.0
-    feature_index2 = 1
-    weight2 = 1.0
-    batch = np.array(test_data).reshape((1, 10))  # fix
-    batch[:, feature_index] *= weight
-    batch[:, feature_index2] *= weight2
+    # train_data = read_data()[0]
+    # test_data = np.array(test_data).reshape((1, 10))
+    # print(test_data[0])
+    # normalized_data = np.concatenate((test_data,train_data), axis=0)
+    # print(normalized_data[0])
+    # normalized_data = normalize_data(normalized_data)
+    # test_data = normalized_data[0]
+    # print(test_data)
+    # feature_index = 0
+    # weight = 2.0
+    # feature_index2 = 1
+    # weight2 = 1.0
     
-    output = network.predict(batch)
+    # test_data[:, feature_index] *= weight
+    # test_data[:, feature_index2] *= weight2
+    test_data = np.array(test_data).reshape((1, 10))
+    test_data = get_training_data(test_data)[4]
+    output = network.predict(test_data)
     return np.argmax(output)
 
 
@@ -333,7 +361,7 @@ def write_pattern(ours=False, filename="patterns.txt"):
                 data["eyeLab"][0],
                 data["eyeLab"][1],
                 data["eyeLab"][2],
-                data["hairLab"][1],
+                data["hairLab"][0],
                 data["hairLab"][1],
                 data["hairLab"][2],
                 data["hairColors"][0][0],
@@ -349,10 +377,6 @@ def write_pattern(ours=False, filename="patterns.txt"):
         )
         if count % 10 == 0:
             print(count)
-        # p = get_pattern(image)
-        # for item in p:
-        #     file.write(str(item) + " ")
-        # file.write('\n')
         # if count == 2:
         #     break
         count += 1
@@ -366,17 +390,26 @@ def normalize_data(data):
     return normalized_data
 
 
-def test_all(file="network2.h5"):
+def test_all(file="best.h5"):
     model = load(file)
+    # train_data = read_data()[0]
     patterns, targets = read_our_data()
-    feature_index = 0
-    weight = 2.0
-    feature_index2 = 1
-    weight2 = 1.0
 
-    patterns = normalize_data(patterns)
-    patterns[:, feature_index] *= weight
-    patterns[:, feature_index2] *= weight2
+    # normalized_data = np.concatenate((patterns,train_data),axis=0)
+    # normalized_data = normalize_data(normalized_data)
+    # patterns = normalized_data[:len(patterns)]
+
+    # feature_index = 0
+    # weight = 2.0
+    # feature_index2 = 1
+    # weight2 = 1.0
+
+    # patterns = normalize_data(patterns)
+    # patterns[:, feature_index] *= weight
+    # patterns[:, feature_index2] *= weight2
+
+    patterns = get_training_data(patterns)[4]
+
     outputs = model.predict(patterns)
     correct = 0
     for i in range(len(outputs)):
