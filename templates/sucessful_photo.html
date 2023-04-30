@@ -3,11 +3,11 @@
 <script>
     let user_image = {{user_image|tojson}}
     let forehead = {{forehead|tojson}}
-    let eyeLeft = {{eyeLeft|tojson}}
-    let eyeRight = {{eyeRight|tojson}}
-    let cheekLeft = {{cheekLeft|tojson}}
-    let cheekRight = {{cheekRight|tojson}}
-    let hairMask = {{hairMask|tojson}}
+    let eye_left = {{eye_left|tojson}}
+    let eye_right = {{eye_right|tojson}}
+    let cheek_left = {{cheek_left|tojson}}
+    let cheek_right = {{cheek_right|tojson}}
+    let hair_mask = {{hair_mask|tojson}}
 </script>
 <body>
     <div class="container-fluid">
@@ -23,13 +23,13 @@
         </div>
         <div class="content">
             <h2>Stuff</h2>
-                <td><img src="data:image/jpeg;base64,{{hairMask}}" width= "400" height="100"></td>
+                <td><img src="data:image/jpeg;base64,{{hair_mask}}" width= "400" height="100"></td>
                 <br>
                 <td><img src="data:image/jpeg;base64,{{forehead}}"></td>
                 <br>
-                <td><img src="data:image/jpeg;base64,{{eyeLeft}}"></td> <b></b> <td><img src="data:image/jpeg;base64,{{eyeRight}}"></td>
+                <td><img src="data:image/jpeg;base64,{{eye_left}}"></td> <b></b> <td><img src="data:image/jpeg;base64,{{eye_right}}"></td>
                 <br>
-                <td><img class="pad_cheek" src="data:image/jpeg;base64,{{cheekLeft}}"></td> <b></b> <td><img src="data:image/jpeg;base64,{{cheekRight}}"></td>
+                <td><img class="pad_cheek" src="data:image/jpeg;base64,{{cheek_left}}"></td> <b></b> <td><img src="data:image/jpeg;base64,{{cheek_right}}"></td>
                 <br>
                 <div class="padding text-center" id="place" style="background-color: white;">
                     <h2>Click here to get your color analysis!</h2>

@@ -4,7 +4,23 @@ import glob
 import numpy.typing as npt
 
 
-def get_avg_bg(cv_img):
+def get_avg_bg(cv_img: np.ndarray) -> np.ndarray:
+    """
+    This function acts as a color corrector for our own visual data separate from the general color corrector.
+    Since we want our visual data to mimic the dataset of photos as much as possible, we have another color corrector getting the hue and saturation 
+    values of the background of the dataset and comparing it to our photos. We make up for the difference in hue and saturation in our
+    photos. 
+    
+    Parameters:
+    ----------
+    cv_img : np.ndarray 
+        Original photo from our own visual data.
+
+    Returns:
+    -------
+    correct_img : np.ndarray
+        A color corrected version of our photo based on the dataset.
+    """
     # base hue and saturation using hsv color space from a square of background in our original dataset
     base_h = 101
     base_s = 17
@@ -24,33 +40,13 @@ def get_avg_bg(cv_img):
     corrected_h = cv2.add(hsv_img[:, :, 0], h_diff, dtype=cv2.CV_8UC1)
 
     # remerged image and resized
-    corrected_img = cv2.merge((corrected_h, corrected_s, hsv_img[:, :, 2]))
-    bgr_img = cv2.cvtColor(corrected_img, cv2.COLOR_HSV2BGR)
-    scalex = 859 / bgr_img.shape[0]
-    scaley = 1222 / bgr_img.shape[1]
-    resized_img = cv2.resize(
-        bgr_img, None, fx=scalex, fy=scaley, interpolation=cv2.INTER_AREA
+    new_img = cv2.merge((corrected_h, corrected_s, hsv_img[:, :, 2]))
+    corrected_img = cv2.cvtColor(new_img, cv2.COLOR_HSV2BGR)
+    scalex = 859 / corrected_img.shape[0]
+    scaley = 1222 / corrected_img.shape[1]
+    correct_img = cv2.resize(
+        corrected_img, None, fx=scalex, fy=scaley, interpolation=cv2.INTER_AREA
     )
-    # cv2.imshow("img", resized_img)
-    # cv2.imshow("cc", cv_img)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
 
-    return resized_img
+    return correct_img
 
-
-# # # test
-# count = 0
-# for image in glob.glob("./OurPhotos/CCF*.jpg"):
-#     cc_img = get_avg_bg(image)
-#     filename = f"./OurPhotos/BCCF{count}.jpg"
-#     cv2.imwrite(filename, cc_img)
-#     count += 1
-# img_path = "./CCDSC06469.JPG"
-# new_img = get_avg_bg(img_path)
-# cv2.imwrite("./2BCCDSC06469.JPG",new_img)
-
-# test2
-# img_path = "./ColorCorrectedImages/CCF0.JPG"
-# get_avg_bg(img_path)
-# cv2.imwrite("./BCCF0.JPG",new_img)

@@ -1,19 +1,15 @@
-import glob
 import os
 import numpy as np
 
 import cv2
 import base64
 from PIL import Image
-import io
-import rawpy
 
 import facial_features
-import color_corrector
 
 
 # Display the 3 color swatches (left cheek, right cheek, forehead) and the average Lab values
-def display_skin_info_HTML(filename, startImg, endImg):
+def display_skin_info_HTML(filename, start_img, end_img):
     # Create an HTML template for displaying the images
     html_template = """
     <!DOCTYPE html>
@@ -31,16 +27,16 @@ def display_skin_info_HTML(filename, startImg, endImg):
     # Generate HTML code for each row of images
     rows = []
 
-    counter = startImg
+    counter = start_img
     data = []
-    for i in range(startImg, endImg):
+    for i in range(start_img, end_img):
         image = "ColorCorrectedImages/CCF" + str(i) + ".jpg"
         cc_image = cv2.imread(image)
 
         f = facial_features.detect_facial_landmarks(cc_image)
-        imgArr = [f[3], f[4], f[5]]
-        l_avg, a_avg, b_avg = facial_features.total_under_tone(imgArr)
-        data.append(((l_avg, a_avg, b_avg), imgArr))
+        img_arr = [f[3], f[4], f[5]]
+        l_avg, a_avg, b_avg = facial_features.total_under_tone(img_arr)
+        data.append(((l_avg, a_avg, b_avg), img_arr))
 
         print(counter)
         counter += 1
@@ -48,7 +44,7 @@ def display_skin_info_HTML(filename, startImg, endImg):
     # L - x[0][0] || a - x[0][1] || b - x[0][2]
     sorted_arr = sorted(data, key=lambda x: x[0][2], reverse=True)
     for tup in sorted_arr:
-        # leftCheek, rightCheek, forehead
+        # left_cheek, right_cheek, forehead
         for i in range(0, 3):
             img = tup[1][i]
             _, buffer = cv2.imencode(".jpg", img)
@@ -71,7 +67,7 @@ def display_skin_info_HTML(filename, startImg, endImg):
 # display_skin_info_HTML("test", 200, 205)
 
 
-def display_eye_info_HTML(filename, startImg, endImg):
+def display_eye_info_HTML(filename, start_img, end_img):
     # Create an HTML template for displaying the images
     html_template = """
     <!DOCTYPE html>
@@ -89,9 +85,9 @@ def display_eye_info_HTML(filename, startImg, endImg):
     # Generate HTML code for each row of images
     rows = []
 
-    counter = startImg
+    counter = start_img
     data = []
-    for i in range(startImg, endImg):
+    for i in range(start_img, end_img):
         image = "ColorCorrectedImages/CCF" + str(i) + ".jpg"
         cc_image = cv2.imread(image)
 
@@ -100,8 +96,8 @@ def display_eye_info_HTML(filename, startImg, endImg):
         eye = f[0]
         color = facial_features.find_iris(eye)
         # (b, g, r), l, a, b, irisMask
-        faceData = [color[0], color[1], color[2], color[3], color[4], eye]
-        data.append(faceData)
+        face_data = [color[0], color[1], color[2], color[3], color[4], eye]
+        data.append(face_data)
 
         print(counter)
         counter += 1
@@ -130,8 +126,8 @@ def display_eye_info_HTML(filename, startImg, endImg):
 
         rows.append(f"<td>(L,a,b) = ({ar[1]:.2f}, {ar[2]}, {ar[3]})</td>")
 
-        bgrVal = ar[0]
-        rows.append(f"<td>(R,G,B) = ({bgrVal[2]},{bgrVal[1]},{bgrVal[0]})</td>")
+        bgr_val = ar[0]
+        rows.append(f"<td>(R,G,B) = ({bgr_val[2]},{bgr_val[1]},{bgr_val[0]})</td>")
         rows.append("</tr><tr>")
 
     html = html_template.format(rows="\n".join(rows))
@@ -145,7 +141,7 @@ def display_eye_info_HTML(filename, startImg, endImg):
 
 
 # Going through color correcting images and ording hair info
-def display_hair_info_HTML(filename, startImg, endImg):
+def display_hair_info_HTML(filename, start_img, end_img):
     # Create an HTML template for displaying the images
     html_template = """
     <!DOCTYPE html>
@@ -163,28 +159,28 @@ def display_hair_info_HTML(filename, startImg, endImg):
     # Generate HTML code for each row of images
     rows = []
 
-    counter = startImg
+    counter = start_img
     data = []
-    for i in range(startImg, endImg):
+    for i in range(start_img, end_img):
         image = "ColorCorrectedImages/CCF" + str(i) + ".jpg"
         cc_image = cv2.imread(image)
 
         f = facial_features.detect_facial_landmarks(cc_image)
-        imgArr = [f[3], f[4], f[5]]
-        l_avg, a_avg, b_avg = facial_features.total_under_tone(imgArr)
+        img_arr = [f[3], f[4], f[5]]
+        l_avg, a_avg, b_avg = facial_features.total_under_tone(img_arr)
 
         threshold_value = 100
         mask = facial_features.get_hair_mask(cc_image, threshold_value)
 
-        l_hair, a_hair, b_hair = facial_features.getLabColorSpace(mask)
+        l_hair, a_hair, b_hair = facial_features.get_lab_color_space(mask)
         if l_hair > 70:
             # REDO THE HAIR MASK!! - was at 190
             threshold_value = 120
             mask = facial_features.get_hair_mask(cc_image, threshold_value)
-            l_hair, a_hair, b_hair = facial_features.getLabColorSpace(mask)
+            l_hair, a_hair, b_hair = facial_features.get_lab_color_space(mask)
 
-        top3colors = facial_features.get_top_color(
-            mask, num_colors=3, value_threshold=25, inBGR=1
+        top_3_colors = facial_features.get_top_color(
+            mask, num_colors=3, value_threshold=25, in_BGR=1
         )
 
         # Lab values,
@@ -194,7 +190,7 @@ def display_hair_info_HTML(filename, startImg, endImg):
                 cc_image,
                 mask,
                 (l_hair, a_hair, b_hair),
-                top3colors,
+                top_3_colors,
             )
         )
 
@@ -236,8 +232,8 @@ def display_hair_info_HTML(filename, startImg, endImg):
         )
         rows.append(f"<td> Top 3 colors: = ({ar[4]})</td>")
 
-        # bgrVal = ar[0]
-        # rows.append(f'<td>(R,G,B) = ({bgrVal[2]},{bgrVal[1]},{bgrVal[0]})</td>')
+        # bgr_val = ar[0]
+        # rows.append(f'<td>(R,G,B) = ({bgr_val[2]},{bgr_val[1]},{bgr_val[0]})</td>')
         rows.append("</tr><tr>")
 
     html = html_template.format(rows="\n".join(rows))
@@ -255,10 +251,10 @@ def display_hair_info_HTML(filename, startImg, endImg):
 # THESE FUNCTIONS ARE USED TO DISPLAY ALL THE FEATURES AND VALUES ON A "TEST" HTML PAGE
 
 
-def display_all_features_HTML(img_str, counter, ours, color_correct, inBGR):
+def display_all_features_HTML(img_str, counter, ours, color_correct, in_BGR):
     rows = []
     data = facial_features.facial_features_and_values(
-        img_str, ours, color_correct, inBGR
+        img_str, ours, color_correct, in_BGR
     )
 
     # original_image = data['original_image']
@@ -273,22 +269,22 @@ def display_all_features_HTML(img_str, counter, ours, color_correct, inBGR):
     rows.append("</tr><tr>")
 
     # SKIN (FOREHEAD, LEFT CHEEK, RIGHT CHEEK)
-    # leftCheek, rightCheek, forehead
+    # left_cheek, right_cheek, forehead
     rows.append("<table>")
     _, buffer = cv2.imencode(".jpg", data["forehead"])
     img_str = base64.b64encode(buffer).decode("utf-8")
     rows.append(f"<td>Forehead -- Left cheek -- Right cheek</td>")
     rows.append("</tr><tr>")
     rows.append(f'<td><img src="data:image/jpeg;base64,{img_str}"></td>')
-    _, buffer = cv2.imencode(".jpg", data["cheekLeft"])
+    _, buffer = cv2.imencode(".jpg", data["cheek_left"])
     img_str = base64.b64encode(buffer).decode("utf-8")
     rows.append(f'<td><img src="data:image/jpeg;base64,{img_str}"></td>')
-    _, buffer = cv2.imencode(".jpg", data["cheekRight"])
+    _, buffer = cv2.imencode(".jpg", data["cheek_right"])
     img_str = base64.b64encode(buffer).decode("utf-8")
     rows.append(f'<td><img src="data:image/jpeg;base64,{img_str}"></td>')
-    skinLab = data["skinLab"]
+    skin_lab = data["skin_lab"]
     rows.append(
-        f"<td>(L,a,b) = ({skinLab[0]:.2f}, {skinLab[1]:.2f}, {skinLab[2]:.2f})</td>"
+        f"<td>(L,a,b) = ({skin_lab[0]:.2f}, {skin_lab[1]:.2f}, {skin_lab[2]:.2f})</td>"
     )
     rows.append("</tr><tr>")
     rows.append("</table>")
@@ -296,44 +292,44 @@ def display_all_features_HTML(img_str, counter, ours, color_correct, inBGR):
     # EYES
 
     rows.append("<table>")
-    _, buffer = cv2.imencode(".jpg", data["eyeLeft"])
+    _, buffer = cv2.imencode(".jpg", data["eye_left"])
     img_str = base64.b64encode(buffer).decode("utf-8")
     rows.append(f"<td>Left eye -- Right eye</td>")
     rows.append("</tr><tr>")
     rows.append(f'<td><img src="data:image/jpeg;base64,{img_str}"></td>')
-    _, buffer = cv2.imencode(".jpg", data["eyeRight"])
+    _, buffer = cv2.imencode(".jpg", data["eye_right"])
     img_str = base64.b64encode(buffer).decode("utf-8")
     rows.append(f'<td><img src="data:image/jpeg;base64,{img_str}"></td>')
 
-    img = data["irisMask"]
+    img = data["iris_mask"]
     _, buffer = cv2.imencode(".jpg", img)
     img_str = base64.b64encode(buffer).decode("utf-8")
     rows.append(
         f'<td><img src="data:image/jpeg;base64,{img_str}" width="{4*img.shape[1]}" height="{4*img.shape[0]}"></td>'
     )
 
-    eyeRGB = data["eyeRGB"]
-    flippedRGB = eyeRGB[::-1]
-    img = Image.new("RGB", (50, 50), flippedRGB)
+    eye_RGB = data["eye_RGB"]
+    flipped_RGB = eye_RGB[::-1]
+    img = Image.new("RGB", (50, 50), flipped_RGB)
     img_np = np.array(img)
 
     _, buffer = cv2.imencode(".jpg", img_np)
     img_str = base64.b64encode(buffer).decode("utf-8")
     rows.append(f'<td><img src="data:image/jpeg;base64,{img_str}"></td>')
 
-    eyeLab = data["eyeLab"]
+    eye_lab = data["eye_lab"]
     rows.append(
-        f"<td>(L,a,b) = ({eyeLab[0]:.2f}, {eyeLab[1]:.2f}, {eyeLab[2]:.2f})</td>"
+        f"<td>(L,a,b) = ({eye_lab[0]:.2f}, {eye_lab[1]:.2f}, {eye_lab[2]:.2f})</td>"
     )
     rows.append(
-        f"<td>(R,G,B) = ({eyeRGB[0]:.2f}, {eyeRGB[1]:.2f}, {eyeRGB[2]:.2f})</td>"
+        f"<td>(R,G,B) = ({eye_RGB[0]:.2f}, {eye_RGB[1]:.2f}, {eye_RGB[2]:.2f})</td>"
     )
 
     rows.append("</tr><tr>")
     rows.append("</table>")
 
     # HAIR
-    img = data["hairMask"]
+    img = data["hair_mask"]
     _, buffer = cv2.imencode(".jpg", img)
     img_str = base64.b64encode(buffer).decode("utf-8")
     rows.append(f"<td>Hair</td>")
@@ -342,23 +338,23 @@ def display_all_features_HTML(img_str, counter, ours, color_correct, inBGR):
         f'<td><img src="data:image/jpeg;base64,{img_str}" width="{img.shape[1]//2}" height="{img.shape[0]//2}"></td>'
     )
 
-    hairColors = data["hairColors"]
+    hair_colors = data["hair_colors"]
     for i in range(0, 3):
-        rgb_color = hairColors[i]
-        flippedRGB = rgb_color[::-1]
-        img = Image.new("RGB", (50, 50), flippedRGB)
+        rgb_color = hair_colors[i]
+        flipped_RGB = rgb_color[::-1]
+        img = Image.new("RGB", (50, 50), flipped_RGB)
         img_np = np.array(img)
 
         _, buffer = cv2.imencode(".jpg", img_np)
         img_str = base64.b64encode(buffer).decode("utf-8")
         rows.append(f'<td><img src="data:image/jpeg;base64,{img_str}"></td>')
 
-    hairLab = data["hairLab"]
+    hair_lab = data["hair_lab"]
     rows.append(
-        f"<td>(L,a,b) = ({hairLab[0]:.2f}, {hairLab[1]:.2f}, {hairLab[2]:.2f})</td>"
+        f"<td>(L,a,b) = ({hair_lab[0]:.2f}, {hair_lab[1]:.2f}, {hair_lab[2]:.2f})</td>"
     )
-    top3colors = data["hairColors"]
-    rows.append(f"<td> Top 3 colors: = ({top3colors})</td>")
+    top_3_colors = data["hair_colors"]
+    rows.append(f"<td> Top 3 colors: = ({top_3_colors})</td>")
 
     rows.append("</tr><tr>")
     rows.append("</table>")
@@ -366,7 +362,7 @@ def display_all_features_HTML(img_str, counter, ours, color_correct, inBGR):
 
 
 def create_HTML_file_all_features_specific_our_photos(
-    filename, foldername, imgList, ours=True, color_correct=True, inBGR=1
+    filename, foldername, img_list, ours=True, color_correct=True, in_BGR=1
 ):
     # Create an HTML template for displaying the images
     html_template = """
@@ -387,10 +383,10 @@ def create_HTML_file_all_features_specific_our_photos(
     rows = []
     counter = 0
     # Process the files in order
-    for img_str in imgList:
+    for img_str in img_list:
         img_str = foldername + img_str
         img_HTML_rows = display_all_features_HTML(
-            img_str, counter, ours, color_correct, inBGR=1
+            img_str, counter, ours, color_correct, in_BGR=1
         )
         rows += img_HTML_rows
         print(counter)
@@ -425,7 +421,7 @@ def create_HTML_file_all_features_specific(
     rows = []
     counter = 0
     img_HTML_rows = display_all_features_HTML(
-        img_str, counter, ours, color_correct, inBGR=1
+        img_str, counter, ours, color_correct, in_BGR=1
     )
     rows += img_HTML_rows
 
@@ -437,7 +433,7 @@ def create_HTML_file_all_features_specific(
 
 
 def create_HTML_file_all_features(
-    filename, startImg, endImg, ours=False, color_correct=True
+    filename, start_img, end_img, ours=False, color_correct=True
 ):
     # Create an HTML template for displaying the images
     html_template = """
@@ -456,7 +452,7 @@ def create_HTML_file_all_features(
 
     # Generate HTML code for each row of images
     rows = []
-    counter = startImg
+    counter = start_img
 
     # Specify the directory path
     dir_path = "ChicagoFaceDatabaseImages"
@@ -467,7 +463,7 @@ def create_HTML_file_all_features(
 
     # Sort the list of files in alphabetical order
     sorted_files = sorted(file_list)
-    sorted_files = sorted_files[startImg:endImg]
+    sorted_files = sorted_files[start_img:end_img]
 
     # Process the files in order
     for file_name in sorted_files:
@@ -489,7 +485,7 @@ def create_HTML_file_all_features(
 
 
 # imgage_str = "ColorCorrectedImages/CCF35.jpg"
-# displayAllFeatures_HTML("./test", 0, 5)
+# display_all_features_HTML("./test", 0, 5)
 
 
 # Use this function to look through the images in the ChicagoFaceDatabaseImages start-end
@@ -505,10 +501,10 @@ def create_HTML_file_all_features(
 
 
 # Use this function to look through all the images in OurPhotos
-# imgList = ["DSC06469.JPG", "DSC06471.JPG", "DSC06473.JPG", "DSC06474.JPG","DSC06477.JPG",
+# img_list = ["DSC06469.JPG", "DSC06471.JPG", "DSC06473.JPG", "DSC06474.JPG","DSC06477.JPG",
 #            "DSC06479.JPG", "DSC06481.JPG", "DSC06483.JPG", "DSC06484.JPG", "DSC06488.JPG",
 #             "DSC06489.JPG", "DSC06491.JPG", "DSC06494.JPG"]
-# # imgList = ["DSC06471.JPG","DSC06473.JPG","DSC06474.JPG","DSC06477.JPG","DSC06479.JPG","DSC06481.JPG",
+# # img_list = ["DSC06471.JPG","DSC06473.JPG","DSC06474.JPG","DSC06477.JPG","DSC06479.JPG","DSC06481.JPG",
 # #            "DSC06483.JPG","DSC06484.JPG","DSC06488.JPG","DSC06489.JPG","DSC06491.JPG","DSC06494.JPG"]
-# # imgList = ["DSC06473.JPG", "DSC06474.JPG", "DSC06481.JPG"]
-# create_HTML_file_all_features_specific_our_photos("test_ours", "OurPhotos/", imgList, True)
+# # img_list = ["DSC06473.JPG", "DSC06474.JPG", "DSC06481.JPG"]
+# create_HTML_file_all_features_specific_our_photos("test_ours", "OurPhotos/", img_list, True)

@@ -4,7 +4,7 @@ import glob
 import numpy.typing as npt
 
 
-def color_corrector(image) -> None:
+def color_corrector(image:str) -> None:
     """This function is to color correct all original photos from the Chicago Face Database. This is mainly using the algorithm from
     https://stackoverflow.com/questions/70876252/how-to-do-color-cast-removal-or-color-coverage-in-python on how to remove color cast
     from photos. To remove color cast you must convert the image from BGR to HSV color space and then flip the hue channel
@@ -18,10 +18,6 @@ def color_corrector(image) -> None:
         cv_img, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA
     )
     hsv_img = cv2.cvtColor(resized_img, cv2.COLOR_BGR2HSV)
-    # og resized img
-    # cv2.imshow("Resized Image", resized_img)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
     # converting to HSV and splitting channels
     h, s, v = cv2.split(hsv_img)
     # flippig hue to be its complement
@@ -38,13 +34,11 @@ def color_corrector(image) -> None:
     final_img = cv2.normalize(blended_img, None, 0, 255, cv2.NORM_MINMAX).astype(
         np.uint8
     )
-    # cv2.imshow("Color Corrected Image", final_img)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
     return final_img
 
 
-def color_correct_all():
+def color_correct_all() -> None:
+    """Helper function to color correct multiple images in a folder and write them to another folder."""
     count = 0
     for image in glob.glob("./ChicagoFaceDatabaseImages/*.jpg"):
         cc_img = color_corrector(image)
