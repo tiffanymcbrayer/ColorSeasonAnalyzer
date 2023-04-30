@@ -40,7 +40,7 @@ def read_data(r=True):
                 if x in valid_targets:
                     targets.append(int(x))
                     # get patterns
-                    # avgUndertone, eye_color_r, eye_color_g, eye_color_b, l_eye, a_eye, b_eye, hair_color_r, hair_color_g, hair_color_b, l_hair, a_hair, b_hair = f2_lines[id].split()
+                    # avg_undertone, eye_color_r, eye_color_g, eye_color_b, l_eye, a_eye, b_eye, hair_color_r, hair_color_g, hair_color_b, l_hair, a_hair, b_hair = f2_lines[id].split()
                     (
                         skin_L,
                         skin_A,
@@ -136,7 +136,7 @@ def read_our_data():
                 if x in valid_targets:
                     targets.append(int(x))
                     # get patterns
-                    # avgUndertone, eye_color_r, eye_color_g, eye_color_b, l_eye, a_eye, b_eye, hair_color_r, hair_color_g, hair_color_b, l_hair, a_hair, b_hair = f2_lines[id].split()
+                    # avg_undertone, eye_color_r, eye_color_g, eye_color_b, l_eye, a_eye, b_eye, hair_color_r, hair_color_g, hair_color_b, l_hair, a_hair, b_hair = f2_lines[id].split()
                     (
                         skin_L,
                         skin_A,
@@ -295,27 +295,27 @@ def predict_image(image, data=None):
         data = ff.facial_features_and_values(image, True, True, 1)
 
     test_data = [
-        # data["skinLab"][0],
-        data["skinLab"][1],
-        data["skinLab"][2],
-        data["eyeLab"][0],
-        # data["eyeLab"][1],
-        # data["eyeLab"][2],
-        data["eyeRGB"][0],
-        data["eyeRGB"][1],
-        data["eyeRGB"][2],
-        data["hairLab"][0],
-        # data["hairLab"][1],
-        # data["hairLab"][2],
-        data["hairColors"][0][0],
-        data["hairColors"][0][1],
-        data["hairColors"][0][2],
-        # data["hairColors"][1][0],
-        # data["hairColors"][1][1],
-        # data["hairColors"][1][2],
-        # data["hairColors"][2][0],
-        # data["hairColors"][2][1],
-        # data["hairColors"][2][2],
+        # data["skin_lab"][0],
+        data["skin_lab"][1],
+        data["skin_lab"][2],
+        data["eye_RGB"][0],
+        data["eye_RGB"][1],
+        data["eye_RGB"][2],
+        data["eye_lab"][0],
+        # data["eye_lab"][1],
+        # data["eye_lab"][2],
+        data["hair_lab"][0],
+        # data["hair_lab"][1],
+        # data["hair_lab"][2],
+        data["hair_colors"][0][0],
+        data["hair_colors"][0][1],
+        data["hair_colors"][0][2],
+        # data["hair_colors"][1][0],
+        # data["hair_colors"][1][1],
+        # data["hair_colors"][1][2],
+        # data["hair_colors"][2][0],
+        # data["hair_colors"][2][1],
+        # data["hair_colors"][2][2],
     ]
     # train_data = read_data()[0]
     # test_data = np.array(test_data).reshape((1, 10))
@@ -352,27 +352,27 @@ def write_pattern(ours=False, filename="patterns.txt"):
         data = ff.facial_features_and_values(image, ours, True, 1)
         file.write(
             "{:f} {:f} {:f} {:d} {:d} {:d} {:f} {:f} {:f} {:f} {:f} {:f} {:d} {:d} {:d} {:d} {:d} {:d} {:d} {:d} {:d} \n".format(
-                data["skinLab"][0],
-                data["skinLab"][1],
-                data["skinLab"][2],
-                data["eyeRGB"][0],
-                data["eyeRGB"][1],
-                data["eyeRGB"][2],
-                data["eyeLab"][0],
-                data["eyeLab"][1],
-                data["eyeLab"][2],
-                data["hairLab"][0],
-                data["hairLab"][1],
-                data["hairLab"][2],
-                data["hairColors"][0][0],
-                data["hairColors"][0][1],
-                data["hairColors"][0][2],
-                data["hairColors"][1][0],
-                data["hairColors"][1][1],
-                data["hairColors"][1][2],
-                data["hairColors"][2][0],
-                data["hairColors"][2][1],
-                data["hairColors"][2][2],
+                data["skin_lab"][0],
+                data["skin_lab"][1],
+                data["skin_lab"][2],
+                data["eye_RGB"][0],
+                data["eye_RGB"][1],
+                data["eye_RGB"][2],
+                data["eye_lab"][0],
+                data["eye_lab"][1],
+                data["eye_lab"][2],
+                data["hair_lab"][1],
+                data["hair_lab"][1],
+                data["hair_lab"][2],
+                data["hair_colors"][0][0],
+                data["hair_colors"][0][1],
+                data["hair_colors"][0][2],
+                data["hair_colors"][1][0],
+                data["hair_colors"][1][1],
+                data["hair_colors"][1][2],
+                data["hair_colors"][2][0],
+                data["hair_colors"][2][1],
+                data["hair_colors"][2][2],
             )
         )
         if count % 10 == 0:

@@ -11,9 +11,9 @@ from werkzeug.utils import secure_filename
 
 
 app = Flask(__name__)
-#data
 app.secret_key = 'sk'
-#ROUTES
+
+
 #global var
 data = []
 colors = {'Winter': {
@@ -144,7 +144,7 @@ colors = {'Winter': {
     'Gold-tone Accessories': '#B49B57'
 }}
 
-
+#ROUTES
 @app.route('/')
 def home():
     return render_template("home.html")
@@ -174,34 +174,31 @@ def upload_photo():
 
         imgList = [img_filename]
 
-        dataHTML.create_HTML_file_all_features_specific_our_photos(
-            "test_server", "static/images/", imgList, True
-        )
         data = facial_features.facial_features_and_values(
             f"static/images/{img_filename}", True, True, 1
         )
-        _, buffer = cv2.imencode(".jpg", data["eyeLeft"])
-        eyeLeft = base64.b64encode(buffer).decode("utf-8")
-        _, buffer = cv2.imencode(".jpg", data["eyeRight"])
-        eyeRight = base64.b64encode(buffer).decode("utf-8")
+        _, buffer = cv2.imencode(".jpg", data["eye_left"])
+        eye_left = base64.b64encode(buffer).decode("utf-8")
+        _, buffer = cv2.imencode(".jpg", data["eye_right"])
+        eye_right = base64.b64encode(buffer).decode("utf-8")
         _, buffer = cv2.imencode(".jpg", data["forehead"])
         forehead = base64.b64encode(buffer).decode("utf-8")
-        _, buffer = cv2.imencode(".jpg", data["cheekRight"])
-        cheekRight = base64.b64encode(buffer).decode("utf-8")
-        _, buffer = cv2.imencode(".jpg", data["cheekLeft"])
-        cheekLeft = base64.b64encode(buffer).decode("utf-8")
-        _, buffer = cv2.imencode(".jpg", data["hairMask"])
-        hairMask = base64.b64encode(buffer).decode("utf-8")
+        _, buffer = cv2.imencode(".jpg", data["cheek_right"])
+        cheek_right = base64.b64encode(buffer).decode("utf-8")
+        _, buffer = cv2.imencode(".jpg", data["cheek_left"])
+        cheek_left = base64.b64encode(buffer).decode("utf-8")
+        _, buffer = cv2.imencode(".jpg", data["hair_mask"])
+        hair_mask = base64.b64encode(buffer).decode("utf-8")
 
         return render_template(
             "sucessful_photo.html",
             user_image=img_path,
             forehead=forehead,
-            eyeLeft=eyeLeft,
-            eyeRight=eyeRight,
-            cheekLeft=cheekLeft,
-            cheekRight=cheekRight,
-            hairMask=hairMask,
+            eye_left=eye_left,
+            eye_right=eye_right,
+            cheek_left=cheek_left,
+            cheek_right=cheek_right,
+            hair_mask=hair_mask,
         )
     return 0
 

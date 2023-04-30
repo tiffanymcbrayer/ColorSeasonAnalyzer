@@ -1,12 +1,10 @@
 import dlib
 import cv2
-import sys
 import numpy as np
 import glob
 from PIL import Image
 import color_corrector
 import matplotlib.pyplot as plt
-import rawpy
 import get_background
 
 import typing as npt
@@ -648,7 +646,7 @@ def get_hair_mask(image, threshold_value):
     return result
 
 
-def facial_features_and_values(img_str, ours, color_correct, inBGR):
+def facial_features_and_values(img_str, ours, color_correct, in_BGR):
     original_image = cv2.imread(img_str)
 
     # COLOR CORRECT THE IMAGE
@@ -661,7 +659,7 @@ def facial_features_and_values(img_str, ours, color_correct, inBGR):
     if ours is True:
         image = get_background.get_avg_bg(image)
 
-    # if inBGR == 1:
+    # if in_BGR == 1:
     #     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
     # Detect all facial features
@@ -692,11 +690,11 @@ def facial_features_and_values(img_str, ours, color_correct, inBGR):
         hair_mask = get_hair_mask(image, threshold_value)
         l_hair, a_hair, b_hair = get_lab_color_space(hair_mask)
 
-    top_3_colors = get_top_color(hair_mask, num_colors=3, value_threshold=25, inBGR=0)
-    # if inBGR == 1: # 15
-    #     top_3_colors = get_top_color(hair_mask, num_colors=3, value_threshold=25, inBGR=0)
+    top_3_colors = get_top_color(hair_mask, num_colors=3, value_threshold=25, in_BGR=0)
+    # if in_BGR == 1: # 15
+    #     top_3_colors = get_top_color(hair_mask, num_colors=3, value_threshold=25, in_BGR=0)
     # else:
-    #     top_3_colors = get_top_color(hair_mask, num_colors=3, value_threshold=25, inBGR=0)
+    #     top_3_colors = get_top_color(hair_mask, num_colors=3, value_threshold=25, in_BGR=0)
 
     data = {
         "original_image": original_image,
