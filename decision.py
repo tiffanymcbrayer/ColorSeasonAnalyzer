@@ -270,7 +270,7 @@ def load(file="predict_season.h5"):
 
 
 def predict_image(image, data=None):
-    network = load("predict_season.h5")
+    network = load("best.h5")
     if data == None:
         data = ff.facial_features_and_values(image, True, True, 1)
 
@@ -302,10 +302,10 @@ def predict_image(image, data=None):
     weight = 2.0
     feature_index2 = 1
     weight2 = 1.0
-
-    test_data[:, feature_index] *= weight
-    test_data[:, feature_index2] *= weight2
     batch = np.array(test_data).reshape((1, 10))  # fix
+    batch[:, feature_index] *= weight
+    batch[:, feature_index2] *= weight2
+    
     output = network.predict(batch)
     return np.argmax(output)
 
