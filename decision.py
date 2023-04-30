@@ -140,10 +140,11 @@ def nn(e=150,file='predict_season.h5'):
 def load(file='predict_season.h5'):
     return load_model(file)
 
-model = load('predict_season.h5')
-def predict_image(image):
-    model
-    data = ff.facial_features_and_values(image, True, True, 1)
+
+def predict_image(image, data=None):
+    network = load('predict_season.h5')
+    if data == None:
+        data = ff.facial_features_and_values(image, True, True, 1)
     
     test_data = [
             data['skinLab'][0], data['skinLab'][1], data['skinLab'][2],
@@ -156,7 +157,7 @@ def predict_image(image):
     ]
     test_data = normalize_data(test_data)
     batch = np.array(test_data).reshape((1,21))
-    output = model.predict(batch)
+    output = network.predict(batch)
     return np.argmax(output)
 
 #old
