@@ -51,10 +51,10 @@ def read_data(r=True):
         targets = np.array([x[1] for x in zipped_lists])
 
     
-    training_set = patterns[:int(.8*len(targets))]
-    testing_set = patterns[int(.8*len(targets)):]
-    training_targets = targets[:int(.8*len(targets))]
-    testing_targets = targets[int(.8*len(targets)):]
+    training_set = patterns[:int(.98*len(targets))]
+    testing_set = patterns[int(.98*len(targets)):]
+    training_targets = targets[:int(.98*len(targets))]
+    testing_targets = targets[int(.98*len(targets)):]
     
     
     train_data = np.array(training_set)
@@ -78,8 +78,38 @@ def read_data(r=True):
 
     return train_data, train_targets, test_data, test_targets
 
+def read_our_data():
+    f2 = open('ourPatterns.txt','r')
+    f = open('ourTargets.txt', 'r')
+    count = 0
+    f2_lines = f2.readlines()
+    patterns = []
+    targets = []
+    valid_targets = ['0','1','2','3']
+    for line in f.readlines():
+        if count == 0:
+            pass
+        else:
+            l = line.split()
+            if len(l) > 1:
+                id = int(l[0])
+                x = l[1]
+                if x in valid_targets:
+                    targets.append(int(x))
+                    #get patterns
+                    # avgUndertone, eye_color_r, eye_color_g, eye_color_b, l_eye, a_eye, b_eye, hair_color_r, hair_color_g, hair_color_b, l_hair, a_hair, b_hair = f2_lines[id].split()
+                    # skin_L, skin_A, skin_B, eye_r, eye_g, eye_b, eye_L, eye_A, eye_B, hair_L, hair_A, hair_B, hair_r1, hair_g1, hair_b1, hair_r2, hair_g2, hair_b2, hair_r3, hair_g3, hair_b3 = f2_lines[id+1].split()
+                    patterns.append(f2_lines[id+1].split())
+                    # patterns.append([skin_A, skin_B, eye_r, eye_g, eye_b, hair_r1, hair_g1, hair_b1])
+                    
+        count += 1
 
-def nn():
+    patterns = np.array(patterns,dtype=float)
+    targets = np.array(targets)
+    targets = to_categorical(targets)  
+    return patterns, targets
+
+def nn(e=150,file='predict_season.h5'):
     train_data, train_targets, test_data, test_targets = read_data()
     print(train_data[0])
     train_data, test_data = normalize_data(train_data), normalize_data(test_data)
@@ -99,17 +129,23 @@ def nn():
 
     early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
 
-    history = network.fit(train_data, train_targets, epochs=250, batch_size=32, validation_split=.1, callbacks=[early_stopping])
+    history = network.fit(train_data, train_targets, epochs=e, batch_size=32, shuffle=True, validation_split=.2, callbacks=[early_stopping])
     print('training_data_eval:')
     network.evaluate(train_data,train_targets)
     print('testing_data_eval')
     network.evaluate(test_data,test_targets)
-    network.save('predict_season.h5')
+    network.save(file)
     return history, network
 
-def predict_image(image):
-    data = ff.facial_features_and_values(image, True, True, 1)
-    network = load_model('predict_season.h5')
+def load(file='predict_season.h5'):
+    return load_model(file)
+
+
+def predict_image(image, data=None):
+    network = load('predict_season.h5')
+    if data == None:
+        data = ff.facial_features_and_values(image, True, True, 1)
+    
     test_data = [
             data['skinLab'][0], data['skinLab'][1], data['skinLab'][2],
             data['eyeRGB'][0], data['eyeRGB'][1], data['eyeRGB'][2],
@@ -119,6 +155,7 @@ def predict_image(image):
             data['hairColors'][1][0], data['hairColors'][1][1], data['hairColors'][1][2],
             data['hairColors'][2][0], data['hairColors'][2][1], data['hairColors'][2][2]
     ]
+    test_data = normalize_data(test_data)
     batch = np.array(test_data).reshape((1,21))
     output = network.predict(batch)
     return np.argmax(output)
@@ -142,12 +179,16 @@ def get_pattern(image):
     hair_color, l_hair, a_hair, b_hair, mask = ff.getHair(image)
     return [avgUndertone, eye_color[0], eye_color[1], eye_color[2], l_eye, a_eye, b_eye, hair_color[0], hair_color[1], hair_color[2], l_hair, a_hair, b_hair]
 
-def write_pattern():
-    file = open('patterns3.txt','w')
+def write_pattern(ours=False,filename='patterns.txt'):
+    file = open(filename,'w')
     count = 0
     file.write("skin_L skin_A skin_B eye_r eye_g eye_b eye_L eye_A eye_B hair_L hair_A hair_B hair_r1 hair_g1 hair_b1 hair_r2 hair_g2 hair_b2 hair_r3 hair_g3 hair_b3\n")
-    for image in glob.glob("./ChicagoFaceDatabaseImages/*.jpg"):
-        data = ff.facial_features_and_values(image, False, True, 1)
+    if ours:
+        folder = "./OurPhotos/*.jpg"
+    else:
+        folder = "./ChicagoFaceDatabaseImages/*.jpg"
+    for image in glob.glob(folder):
+        data = ff.facial_features_and_values(image, ours, True, 1)
         file.write("{:f} {:f} {:f} {:d} {:d} {:d} {:f} {:f} {:f} {:f} {:f} {:f} {:d} {:d} {:d} {:d} {:d} {:d} {:d} {:d} {:d} \n".format(
             data['skinLab'][0], data['skinLab'][1], data['skinLab'][2],
             data['eyeRGB'][0], data['eyeRGB'][1], data['eyeRGB'][2],
@@ -175,6 +216,25 @@ def normalize_data(data):
     normalized_data = (data - min_values) / (max_values - min_values)
     return normalized_data
 
+def test_all(file='predict_season.h5'):
+    model = load(file)
+    patterns, targets = read_our_data()
+    outputs = model.predict(patterns)
+    correct = 0
+    for i in range(len(outputs)):
+        network_answer = np.argmax(outputs[i])
+        correct_answer = np.argmax(targets[i])
+        if network_answer == correct_answer:
+            correct += 1
+            print(str(network_answer) + " is correct")
+    success = correct / len(outputs)
+    return outputs, success
+
+def run(epochs=150,file='network.h5'):
+    h,n = nn(epochs,file)
+    plot_history(h)
+    o,s = test_all(file)
+    return s
 
 def plot_history(history):
     loss_values = history.history['loss']
