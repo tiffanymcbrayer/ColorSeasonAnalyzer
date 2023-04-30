@@ -57,35 +57,35 @@ def detect_facial_landmarks(image: np.ndarray) -> List[np.ndarray]:
         facial_features = []
         
         # EYES
-        leftEyeLandmarks = [36, 37, 38, 39, 40, 41]
-        leftEyeImage = createMask(landmarks, leftEyeLandmarks, image)
-        facial_features.append(leftEyeImage)
-        rightEyeLandmarks = [42, 43, 44, 45, 46, 47]
-        rightEyeImage = createMask(landmarks, rightEyeLandmarks, image)
-        facial_features.append(rightEyeImage)
+        left_eye_landmarks = [36, 37, 38, 39, 40, 41]
+        left_eye_image = create_mask(landmarks, left_eye_landmarks, image)
+        facial_features.append(left_eye_image)
+        right_eye_landmarks = [42, 43, 44, 45, 46, 47]
+        right_eye_image = create_mask(landmarks, right_eye_landmarks, image)
+        facial_features.append(right_eye_image)
 
         # LIPS - Not using right now
         #lipsLandmarks = [48,49,50,51,52,53,54,55,56,57,58,59]
-        #lipsImage = createMask(landmarks, lipsLandmarks, image)
+        #lipsImage = create_mask(landmarks, lipsLandmarks, image)
         #facial_features.append(lipsImage)
         facial_features.append("")
 
         # CHEEKS
-        leftCheekLandmarks = [2, 3, 4, 48]
-        leftCheekImage = createMask(landmarks, leftCheekLandmarks, image, 1)
+        left_cheek_landmarks = [2, 3, 4, 48]
+        leftCheekImage = create_mask(landmarks, left_cheek_landmarks, image, 1)
         facial_features.append(leftCheekImage)
-        rightCheekLandmarks = [14, 13, 12, 54]
-        rightCheekImage = createMask(landmarks, rightCheekLandmarks, image, 2)
-        facial_features.append(rightCheekImage)
+        right_cheek_landmarks = [14, 13, 12, 54]
+        right_cheek_image = create_mask(landmarks, right_cheek_landmarks, image, 2)
+        facial_features.append(right_cheek_image)
 
         # FOREHEAD
-        foreheadImage = createMask(landmarks, [], image, 3)
-        facial_features.append(foreheadImage)
+        forehead_image = create_mask(landmarks, [], image, 3)
+        facial_features.append(forehead_image)
 
     return facial_features
 
 
-def createMask(landmarks: np.ndarray, specific_landmarks: np.ndarray, image: np.ndarray, swatch: int = 0) -> np.ndarray:
+def create_mask(landmarks: np.ndarray, specific_landmarks: np.ndarray, image: np.ndarray, swatch: int = 0) -> np.ndarray:
     """
     This function is a helper to detect_facial_landmarks used to create masks based on the specific_landmarks points in detect_facial_landmarks. 
     It adds extra points to create masks for the left cheek, right cheek, and forehead. The function returns a cropped image of the original image with the mask applied.
@@ -103,7 +103,7 @@ def createMask(landmarks: np.ndarray, specific_landmarks: np.ndarray, image: np.
 
     Returns:
     -------
-    croppedImage : np.ndarray
+    cropped_image : np.ndarray
         The cropped image of the original image with the mask applied.
     """
     # The left cheek, right cheek, and forehead need added points
@@ -122,21 +122,21 @@ def createMask(landmarks: np.ndarray, specific_landmarks: np.ndarray, image: np.
         new_point = (x, y)
 
     # Forehead - extra points added for top left and right corners of rectangles at arbitrary 60 pixels high
-    foreheadPoints = np.empty((0, 2))
+    forehead_points = np.empty((0, 2))
     if swatch == 3:
-        leftMostY = landmarks.part(19).x
-        rightMostY = landmarks.part(24).x
+        left_most_y = landmarks.part(19).x
+        right_most_y = landmarks.part(24).x
         bottom = min(landmarks.part(19).y, landmarks.part(24).y)
         top = bottom - 60  # arbitrary num
-        foreheadPoints = np.concatenate(
-            (foreheadPoints, np.array([(leftMostY, bottom)]))
+        forehead_points = np.concatenate(
+            (forehead_points, np.array([(left_most_y, bottom)]))
         )
-        foreheadPoints = np.concatenate(
-            (foreheadPoints, np.array([(rightMostY, bottom)]))
+        forehead_points = np.concatenate(
+            (forehead_points, np.array([(right_most_y, bottom)]))
         )
-        foreheadPoints = np.concatenate((foreheadPoints, np.array([(rightMostY, top)])))
-        foreheadPoints = np.concatenate((foreheadPoints, np.array([(leftMostY, top)])))
-        foreheadPoints = foreheadPoints.astype(int)
+        forehead_points = np.concatenate((forehead_points, np.array([(right_most_y, top)])))
+        forehead_points = np.concatenate((forehead_points, np.array([(left_most_y, top)])))
+        forehead_points = forehead_points.astype(int)
 
     # Create mask
     points = np.empty((0, 2))
@@ -146,26 +146,49 @@ def createMask(landmarks: np.ndarray, specific_landmarks: np.ndarray, image: np.
     if new_point is not None and swatch != 3:
         points = np.concatenate((points, np.array([new_point])))
     if swatch == 3:
-        points = foreheadPoints.copy()
+        points = forehead_points.copy()
 
     mask = np.zeros(image.shape[:2], dtype=np.uint8)
     cv2.drawContours(mask, [points], -1, 255, -1, cv2.LINE_AA)
 
     # Apply mask to original image to get left eye image
-    maskedImage = cv2.bitwise_and(image, image, mask=mask)
+    masked_image = cv2.bitwise_and(image, image, mask=mask)
 
     # Crop the image to the masked part
     x, y, w, h = cv2.boundingRect(mask)
-    croppedImage = maskedImage[y : y + h, x : x + w]
+    cropped_image = masked_image[y : y + h, x : x + w]
 
-    return croppedImage
+    return cropped_image
 
 
-def find_iris(eyeMask):
-    gray_eyeMask = cv2.cvtColor(eyeMask, cv2.COLOR_BGR2GRAY)
+def find_iris(eye_mask: np.ndarray) -> List[float]:
+    """
+    This function is a helper to detect a part of the iris to extract it's color. 
+    It uses the bounding box of the mask to segregate a rectangle under the pupil. The color histogram of the rectangle is then calculated and the
+    most prominent color is retrieved. The Lab color space of the mask is returned along with the main color of the iris and the mask.
+    
+    Parameters:
+    ----------
+    eye_mask : np.ndarray 
+        An array of the mask of the iris taken from the dlib calculation.
 
-    # Get bounding box of eyeMask
-    x, y, w, h = cv2.boundingRect(gray_eyeMask)
+    Returns:
+    -------
+    eye_color : List[float]
+        The main bgr color of the iris.
+    l_val : float
+        The lightness value of the iris mask from LAB color space.
+    a_val : float
+        The a value of the iris mask from LAB color space.
+    b_val : float
+        The b value of the iris mask from LAB color space.
+    iris_mask : np.ndarray
+        The rectangle section of the iris.
+    """
+    gray_eye_mask = cv2.cvtColor(eye_mask, cv2.COLOR_BGR2GRAY)
+
+    # Get bounding box of eye_mask
+    x, y, w, h = cv2.boundingRect(gray_eye_mask)
 
     # Make iris section bounding box
     y_mod = round(y + (4 * (h / 6)))
@@ -174,27 +197,22 @@ def find_iris(eyeMask):
     x_diff = round(x_mod + 1.05 * (w / 4))
     y_diff = round(y_mod + 0.75 * (h / 6))
 
-    # Get iris section from eyeMask
-    irisMask = eyeMask[y_mod:y_diff, x_mod:x_diff, :]
+    # Get iris section from eye_mask
+    iris_mask = eye_mask[y_mod:y_diff, x_mod:x_diff, :]
 
-    # Convert irisMask to Lab color space
-    lVal, aVal, bVal = getLabColorSpace(irisMask)
-    # print("L: " + str(lVal) + " a: " + str(aVal) + " b: " + str(bVal))
+    # Convert iris_mask to Lab color space
+    l_val, a_val, b_val = get_lab_color_space(iris_mask)
 
     # Get most prominent color in iris using color histogram
     hist = cv2.calcHist(
-        [irisMask], [0, 1, 2], None, [256, 256, 256], [0, 256, 0, 256, 0, 256]
+        [iris_mask], [0, 1, 2], None, [256, 256, 256], [0, 256, 0, 256, 0, 256]
     )
     hist_flatten = hist.flatten()
     max_color_ind = np.argmax(hist_flatten)
     bgr = np.unravel_index(max_color_ind, hist.shape)
     eye_color = (bgr[0], bgr[1], bgr[2])
 
-    # Draw rectangle on image
-    # cv2.rectangle(eyeMask, (x_mod, y_mod), (round(x_mod + (w/4)), round(y_mod + (h/6))), (0, 0, 255), 1)
-
-    return (eye_color, lVal, aVal, bVal, irisMask)
-    # return eye_color
+    return (eye_color, l_val, a_val, b_val, iris_mask)
 
 
 """
@@ -204,7 +222,7 @@ def find_iris(eyeMask):
 """
 
 
-def getLabColorSpace(img: np.ndarray) -> List[int]:
+def get_lab_color_space(img: np.ndarray) -> List[int]:
     """
     This function takes an RGB image as input and converts it to the LAB color space. 
     It then extracts the L, a, and b channels of the LAB image and calculates the average values of the a and b channels, 
@@ -248,14 +266,14 @@ def getLabColorSpace(img: np.ndarray) -> List[int]:
 
 # Return the undertone using the 3 swatches - left cheek, right cheek, and forehead
 # higher a* value would indicate a cooler or pinker undertone, while a lower a* value would indicate a warmer or yellower undertone.
-def total_under_tone(imgArr):
+def total_under_tone(img_arr):
     l_tot = 0
     a_tot = 0
     b_tot = 0
     # 1.leftCheek, 2.rightCheek, 3.forehead
     for i in range(0, 3):
-        img = imgArr[i]
-        l, a, b = getLabColorSpace(img)
+        img = img_arr[i]
+        l, a, b = get_lab_color_space(img)
         l_tot += l
         a_tot += a
         b_tot += b
@@ -267,7 +285,7 @@ def total_under_tone(imgArr):
     return (l_avg, a_avg, b_avg)
 
 
-def getHair(img_path):
+def get_hair(img_path):
     image = cv2.imread(img_path)
 
     # Convert the image to grayscale
@@ -343,7 +361,7 @@ def getHair(img_path):
 
         # Create the masked image
         masked_image = cv2.bitwise_and(image, image, mask=hair_mask)
-        lVal, aVal, bVal = getLabColorSpace(masked_image)
+        l_val, a_val, b_val = get_lab_color_space(masked_image)
         # Compute the average pixel value of the detected hair region in the color image
         average_hair_value_color = cv2.mean(image, mask=hair_mask)
 
@@ -369,7 +387,7 @@ def getHair(img_path):
         # cv2.destroyAllWindows()
 
     # return average_hair_value_color
-    return (average_hair_value_color, lVal, aVal, bVal, resized_masked_image)
+    return (average_hair_value_color, l_val, a_val, b_val, resized_masked_image)
 
 
 def flood_fill(image, seed_point, threshold, new_value):
@@ -394,7 +412,7 @@ def flood_fill(image, seed_point, threshold, new_value):
 
 def display_all_hair():
     for image in glob.glob("./ColorCorrectedImages/*.jpg"):
-        h = getHair(image)
+        h = get_hair(image)
         print(h)
 
 
@@ -431,7 +449,7 @@ def find_intersection(line1_point1, line1_point2, line2_point1, line2_point2):
 
 
 # Right now getting top 3 colors in a mask
-def get_top_color(mask, num_colors=3, value_threshold=25, inBGR=1):
+def get_top_color(mask, num_colors=3, value_threshold=25, in_BGR=1):
     # Get top 3 most prominent colors in iris using color histogram, excluding black color
     hist = cv2.calcHist(
         [mask], [0, 1, 2], None, [256, 256, 256], [0, 256, 0, 256, 0, 256]
@@ -439,23 +457,23 @@ def get_top_color(mask, num_colors=3, value_threshold=25, inBGR=1):
     hist_flatten = hist.flatten()
     hist_flatten[0] = 0  # set the count of black color to 0
     max_color_inds = np.argsort(hist_flatten)[::-1]  # get the indices of the top colors
-    top3colors = []
+    top_3_colors = []
     for ind in max_color_inds:
         bgr = np.unravel_index(ind, hist.shape)
         rgb = (bgr[2], bgr[1], bgr[0])
         if bgr[2] != bgr[1] and bgr[2] != bgr[0]:
-            if len(top3colors) == 0:
-                top3colors.append(rgb)
+            if len(top_3_colors) == 0:
+                top_3_colors.append(rgb)
             else:
-                diff = np.abs(np.array(top3colors) - np.array(rgb))
+                diff = np.abs(np.array(top_3_colors) - np.array(rgb))
                 if np.all(diff >= value_threshold):
-                    top3colors.append(rgb)
-            if len(top3colors) == num_colors:
+                    top_3_colors.append(rgb)
+            if len(top_3_colors) == num_colors:
                 break
 
-    if inBGR:
-        top3colors = [c[::-1] for c in top3colors]
-    return top3colors
+    if in_BGR:
+        top_3_colors = [c[::-1] for c in top_3_colors]
+    return top_3_colors
 
 
 # https://github.com/codeniko/shape_predictor_81_face_landmarks
@@ -519,17 +537,17 @@ def get_hair_mask(image, threshold_value):
             [(landmarks.part(i).x, landmarks.part(i).y) for i in [75, 76, 68, 69]]
         )
         forehead_points = np.vstack([forehead_points, [intersection]])
-        leftSide = np.array(
+        left_side = np.array(
             [(landmarks.part(i).x, landmarks.part(i).y) for i in [72, 73, 79, 74]]
         )
-        forehead_points = np.vstack([forehead_points, leftSide])
+        forehead_points = np.vstack([forehead_points, left_side])
         forehead_points = np.vstack([forehead_points, [y - 5, landmarks.part(74).y]])
         forehead_points = np.vstack([forehead_points, [y - 5, landmarks.part(74).y]])
         forehead_points = np.vstack([forehead_points, [y - 5, 0]])
         forehead_points = np.vstack([forehead_points, [0, 0]])
         forehead_points = np.vstack([forehead_points, [0, landmarks.part(75).y]])
 
-        hairPoints = [75, 76, 68, 69, 70]
+        hair_points = [75, 76, 68, 69, 70]
         hairline_points = np.array(
             [(landmarks.part(i).y, landmarks.part(i).x) for i in [72, 73, 79, 74]]
         )
@@ -550,16 +568,16 @@ def get_hair_mask(image, threshold_value):
         cv2.drawContours(mask, [forehead_points], -1, 255, -1, cv2.LINE_AA)
 
         # Apply mask to original image to get left eye image
-        maskedImage = cv2.bitwise_and(image, image, mask=mask)
+        masked_image = cv2.bitwise_and(image, image, mask=mask)
 
-        # return maskedImage
+        # return masked_image
 
         # Crop the image to the masked part
         x, y, w, h = cv2.boundingRect(mask)
-        croppedImage = maskedImage[y : y + h, x : x + w]
+        cropped_image = masked_image[y : y + h, x : x + w]
     # ---------------------------------------------------
 
-    img = croppedImage
+    img = cropped_image
 
     # Convert the image to grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -648,53 +666,53 @@ def facial_features_and_values(img_str, ours, color_correct, inBGR):
 
     # Detect all facial features
     f = detect_facial_landmarks(image)
-    eyeLeft = f[0]
-    eyeRight = f[1]
-    cheekLeft = f[3]
-    cheekRight = f[4]
+    eye_left = f[0]
+    eye_right = f[1]
+    cheek_left = f[3]
+    cheek_right = f[4]
     forehead = f[5]
-    skinArr = [cheekLeft, cheekRight, forehead]
+    skin_arr = [cheek_left, cheek_right, forehead]
 
     # SKIN undertone Lab values
-    l_avg_skin, a_avg_skin, b_avg_skin = total_under_tone(skinArr)
+    l_avg_skin, a_avg_skin, b_avg_skin = total_under_tone(skin_arr)
 
     # EYES
-    eye_color, l_avg_eye, a_avg_eye, b_avg_eye, irisMask = find_iris(eyeLeft)
+    eye_color, l_avg_eye, a_avg_eye, b_avg_eye, iris_mask = find_iris(eye_left)
     eye_color = (eye_color[2], eye_color[1], eye_color[0])
 
     # HAIR
     threshold_value = 100
-    hairMask = get_hair_mask(image, threshold_value)
+    hair_mask = get_hair_mask(image, threshold_value)
 
-    l_hair, a_hair, b_hair = getLabColorSpace(hairMask)
+    l_hair, a_hair, b_hair = get_lab_color_space(hair_mask)
     if l_hair > 70:
         # REDO THE HAIR MASK!! - was
         threshold_value = 120
         # threshold_value = 120
-        hairMask = get_hair_mask(image, threshold_value)
-        l_hair, a_hair, b_hair = getLabColorSpace(hairMask)
+        hair_mask = get_hair_mask(image, threshold_value)
+        l_hair, a_hair, b_hair = get_lab_color_space(hair_mask)
 
-    top3colors = get_top_color(hairMask, num_colors=3, value_threshold=25, inBGR=0)
+    top_3_colors = get_top_color(hair_mask, num_colors=3, value_threshold=25, inBGR=0)
     # if inBGR == 1: # 15
-    #     top3colors = get_top_color(hairMask, num_colors=3, value_threshold=25, inBGR=0)
+    #     top_3_colors = get_top_color(hair_mask, num_colors=3, value_threshold=25, inBGR=0)
     # else:
-    #     top3colors = get_top_color(hairMask, num_colors=3, value_threshold=25, inBGR=0)
+    #     top_3_colors = get_top_color(hair_mask, num_colors=3, value_threshold=25, inBGR=0)
 
     data = {
         "original_image": original_image,
         "color_corrected_image": image,
-        "eyeLeft": eyeLeft,
-        "eyeRight": eyeRight,
-        "cheekLeft": cheekLeft,
-        "cheekRight": cheekRight,
+        "eye_left": eye_left,
+        "eye_right": eye_right,
+        "cheek_left": cheek_left,
+        "cheek_right": cheek_right,
         "forehead": forehead,
-        "skinLab": (l_avg_skin, a_avg_skin, b_avg_skin),
-        "eyeRGB": eye_color,
-        "eyeLab": (l_avg_eye, a_avg_eye, b_avg_eye),
-        "irisMask": irisMask,
-        "hairLab": (l_hair, a_hair, b_hair),
-        "hairColors": top3colors,
-        "hairMask": hairMask,
+        "skin_lab": (l_avg_skin, a_avg_skin, b_avg_skin),
+        "eye_RGB": eye_color,
+        "eye_lab": (l_avg_eye, a_avg_eye, b_avg_eye),
+        "iris_mask": iris_mask,
+        "hair_lab": (l_hair, a_hair, b_hair),
+        "hair_colors": top_3_colors,
+        "hair_mask": hair_mask,
     }
 
     return data
