@@ -11,6 +11,7 @@ from tensorflow.keras.layers import Flatten
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.models import load_model
+from imblearn.over_sampling import SMOTE 
 
 import facial_features as ff
 
@@ -38,9 +39,9 @@ def read_data(r=True):
                     targets.append(int(x))
                     #get patterns
                     # avgUndertone, eye_color_r, eye_color_g, eye_color_b, l_eye, a_eye, b_eye, hair_color_r, hair_color_g, hair_color_b, l_hair, a_hair, b_hair = f2_lines[id].split()
-                    # skin_L, skin_A, skin_B, eye_r, eye_g, eye_b, eye_L, eye_A, eye_B, hair_L, hair_A, hair_B, hair_r1, hair_g1, hair_b1, hair_r2, hair_g2, hair_b2, hair_r3, hair_g3, hair_b3 = f2_lines[id+1].split()
-                    patterns.append(f2_lines[id+1].split())
-                    # patterns.append([skin_A, skin_B, eye_r, eye_g, eye_b, hair_r1, hair_g1, hair_b1])
+                    skin_L, skin_A, skin_B, eye_r, eye_g, eye_b, eye_L, eye_A, eye_B, hair_L, hair_A, hair_B, hair_r1, hair_g1, hair_b1, hair_r2, hair_g2, hair_b2, hair_r3, hair_g3, hair_b3 = f2_lines[id+1].split()
+                    # patterns.append(f2_lines[id+1].split())
+                    patterns.append([skin_A, skin_B, eye_L, eye_r, eye_g, eye_b, hair_L, hair_r1, hair_g1, hair_b1])
                     
         count += 1
 
@@ -98,9 +99,9 @@ def read_our_data():
                     targets.append(int(x))
                     #get patterns
                     # avgUndertone, eye_color_r, eye_color_g, eye_color_b, l_eye, a_eye, b_eye, hair_color_r, hair_color_g, hair_color_b, l_hair, a_hair, b_hair = f2_lines[id].split()
-                    # skin_L, skin_A, skin_B, eye_r, eye_g, eye_b, eye_L, eye_A, eye_B, hair_L, hair_A, hair_B, hair_r1, hair_g1, hair_b1, hair_r2, hair_g2, hair_b2, hair_r3, hair_g3, hair_b3 = f2_lines[id+1].split()
-                    patterns.append(f2_lines[id+1].split())
-                    # patterns.append([skin_A, skin_B, eye_r, eye_g, eye_b, hair_r1, hair_g1, hair_b1])
+                    skin_L, skin_A, skin_B, eye_r, eye_g, eye_b, eye_L, eye_A, eye_B, hair_L, hair_A, hair_B, hair_r1, hair_g1, hair_b1, hair_r2, hair_g2, hair_b2, hair_r3, hair_g3, hair_b3 = f2_lines[id+1].split()
+                    # patterns.append(f2_lines[id+1].split())
+                    patterns.append([skin_A, skin_B, eye_L, eye_r, eye_g, eye_b, hair_L, hair_r1, hair_g1, hair_b1])
                     
         count += 1
 
@@ -109,17 +110,50 @@ def read_our_data():
     targets = to_categorical(targets)  
     return patterns, targets
 
+
+def augment_data(patterns, targets):
+    new_patterns = []
+    new_targets = []
+    num_samples, num_features = patterns.shape
+    shift_range = 3
+    for i in range(len(patterns)):
+        for _ in range(10):
+            random_shift = np.random.uniform(-shift_range, shift_range, num_features)
+            shifted_sample = patterns[i] + random_shift
+            new_patterns.append(shifted_sample)
+            new_targets.append(targets[i])
+
+        new_patterns.append(patterns[i])
+        new_targets.append(targets[i])
+    return np.array(new_patterns), np.array(new_targets)
+
 def nn(e=150,file='predict_season.h5'):
     train_data, train_targets, test_data, test_targets = read_data()
-    print(train_data[0])
-    train_data, test_data = normalize_data(train_data), normalize_data(test_data)
-    print(train_data[0])
     print(train_data.shape, train_targets.shape)
-    print(test_data.shape, test_targets.shape)
+    our_patterns, our_targets = read_our_data()
+    our_patterns, our_targets = augment_data(our_patterns, our_targets)
+    train_data = np.concatenate((train_data, our_patterns), axis=0)
+    train_targets = np.concatenate((train_targets, our_targets), axis=0)
+    # print(train_data[0])
+    train_data, test_data = normalize_data(train_data), normalize_data(test_data)
+    # print(train_data[0])
+    print(train_data.shape, train_targets.shape)
+    # print(test_data.shape, test_targets.shape)
+
+    smote = SMOTE(random_state=42)
+    train_data, train_targets = smote.fit_resample(train_data, train_targets)
+    print(train_data.shape, train_targets.shape)
+    feature_index = 0
+    weight = 2.0
+    feature_index2 = 1
+    weight2 = 1.0
+
+    train_data[:, feature_index] *= weight
+    train_data[:, feature_index2] *= weight2
 
     network = Sequential()
-    network.add(Flatten(input_shape=(21,)))
-    network.add(Dense(30, activation='relu', name='hidden', input_shape=(21,)))
+    network.add(Flatten(input_shape=(10,)))
+    network.add(Dense(30, activation='relu', name='hidden', input_shape=(10,)))
     network.add(Dense(16, activation='relu', name='hidden2', kernel_regularizer=tf.keras.regularizers.l2(0.001)))
     network.add(Dense(4, activation='softmax', name='output'))
     network.compile(loss=tf.keras.losses.CategoricalCrossentropy(), optimizer='adam', metrics=['accuracy'])
@@ -156,7 +190,7 @@ def predict_image(image, data=None):
             data['hairColors'][2][0], data['hairColors'][2][1], data['hairColors'][2][2]
     ]
     test_data = normalize_data(test_data)
-    batch = np.array(test_data).reshape((1,21))
+    batch = np.array(test_data).reshape((1,21)) #fix
     output = network.predict(batch)
     return np.argmax(output)
 
@@ -216,7 +250,7 @@ def normalize_data(data):
     normalized_data = (data - min_values) / (max_values - min_values)
     return normalized_data
 
-def test_all(file='predict_season.h5'):
+def test_all(file='network2.h5'):
     model = load(file)
     patterns, targets = read_our_data()
     outputs = model.predict(patterns)
@@ -226,11 +260,11 @@ def test_all(file='predict_season.h5'):
         correct_answer = np.argmax(targets[i])
         if network_answer == correct_answer:
             correct += 1
-            print(str(network_answer) + " is correct")
+            print(str(network_answer) + " is correct (photo " + str(i) + ")")
     success = correct / len(outputs)
     return outputs, success
 
-def run(epochs=150,file='network.h5'):
+def run(epochs=150,file='network2.h5'):
     h,n = nn(epochs,file)
     plot_history(h)
     o,s = test_all(file)
