@@ -9,63 +9,66 @@ import matplotlib.pyplot as plt
 import rawpy
 import get_background
 
-# import imageio
+import typing as npt
+from typing import List
 
 
-# def detect_facial_landmarks(img_path):
-def detect_facial_landmarks(image):
-    # Load the image and convert it to grayscale
-    # image = cv2.imread(img_path)
+def detect_facial_landmarks(image: np.ndarray) -> List[np.ndarray]:
+    """
+    This function detects facial landmark points in an input image using the Dlib library http://dlib.net/ 
+    The facial landmark points are used to identify the features: left eye, right eye, left cheek, right cheek, and forehead. 
+    With the list of points for each feature, it then creates a mask for each. Finally, the function returns a list of images 
+    representing the facial features.
 
+    Parameters:
+    ----------
+    image : np.ndarray
+        The input image to detect facial landmarks on.
+
+    Returns:
+    -------
+    List[np.ndarray]
+        A list of images representing the facial features detected: left eye, right eye, left cheek, right cheek, and forehead.
+    """
+
+    # Convert image to grayscale 
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
+    # Use Dlib to initialize face detector
     detector = dlib.get_frontal_face_detector()
 
     # Create a shape predictor object to locate facial landmarks
     predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
     faces = detector(gray)
 
-    # Loop over each detected face and get the facial landmarks
+    # Loop over each detected face and get the facial landmarks - should only be one face per image
     for face in faces:
+        # Get the 68 facial landmark points
         landmarks = predictor(gray, face)
 
-        # Loop over the 68 facial landmarks and draw them on the image
-        for i in range(68):
-            x = landmarks.part(i).x
-            y = landmarks.part(i).y
-            # cv2.circle(image, (x, y), 3, (0, 0, 255), -1)  # Draw a red dot at the landmark location
-            # cv2.putText(image, str(i+1), (x+5, y+5), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 1, cv2.LINE_AA)
+        # Loop over the 68 facial landmarks points and draw them on the image
+        # for i in range(68):
+        #     x = landmarks.part(i).x
+        #     y = landmarks.part(i).y
+        #     cv2.circle(image, (x, y), 3, (0, 0, 255), -1)  # Draw a red dot at the landmark location
+        #     cv2.putText(image, str(i+1), (x+5, y+5), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 1, cv2.LINE_AA)
 
+        # Initialize facial features mask list
         facial_features = []
+        
         # EYES
         leftEyeLandmarks = [36, 37, 38, 39, 40, 41]
         leftEyeImage = createMask(landmarks, leftEyeLandmarks, image)
-        # eye_color = find_iris(leftEyeImage)
         facial_features.append(leftEyeImage)
-
         rightEyeLandmarks = [42, 43, 44, 45, 46, 47]
         rightEyeImage = createMask(landmarks, rightEyeLandmarks, image)
         facial_features.append(rightEyeImage)
 
-        # LIPS
-        # lipsLandmarks = [48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59,60, 61, 62, 63, 64, 65, 66, 67]
-        lipsLandmarks = [
-            48,
-            49,
-            50,
-            51,
-            52,
-            53,
-            54,
-            55,
-            56,
-            57,
-            58,
-            59,
-        ]
-
-        lipsImage = createMask(landmarks, lipsLandmarks, image)
-        facial_features.append(lipsImage)
+        # LIPS - Not using right now
+        #lipsLandmarks = [48,49,50,51,52,53,54,55,56,57,58,59]
+        #lipsImage = createMask(landmarks, lipsLandmarks, image)
+        #facial_features.append(lipsImage)
+        facial_features.append("")
 
         # CHEEKS
         leftCheekLandmarks = [2, 3, 4, 48]
@@ -82,28 +85,49 @@ def detect_facial_landmarks(image):
     return facial_features
 
 
-def createMask(landmarks, specific_landmarks, image, swatch=0):
+def createMask(landmarks: np.ndarray, specific_landmarks: np.ndarray, image: np.ndarray, swatch: int = 0) -> np.ndarray:
+    """
+    This function is a helper to detect_facial_landmarks used to create masks based on the specific_landmarks points in detect_facial_landmarks. 
+    It adds extra points to create masks for the left cheek, right cheek, and forehead. The function returns a cropped image of the original image with the mask applied.
+    
+    Parameters:
+    ----------
+    landmarks : np.ndarray 
+        A 68 point facial landmark array obtained by using the dlib library.
+    specific_landmarks : np.ndarray  
+        A list of specific landmark points to be used to create a mask for a specific facial feature.
+    image : np.ndarray 
+        The input image on which the mask is to be applied.
+    swatch : int
+         An optional integer parameter that specifies which facial feature the mask should be created for.
+
+    Returns:
+    -------
+    croppedImage : np.ndarray
+        The cropped image of the original image with the mask applied.
+    """
+    # The left cheek, right cheek, and forehead need added points
     new_point = None
-    # the left cheek, right cheek, and forehead need added points
-    # left cheek
+    
+    # Left cheek - extra points added closer to nose 
     if swatch == 1:
         x = landmarks.part(48).x
         y = landmarks.part(2).y
         new_point = (x, y)
 
-    # right cheek
+    # Right cheek - extra points added closer to nose 
     if swatch == 2:
         x = landmarks.part(54).x
         y = landmarks.part(14).y
         new_point = (x, y)
 
-    # forehead
+    # Forehead - extra points added for top left and right corners of rectangles at arbitrary 60 pixels high
     foreheadPoints = np.empty((0, 2))
     if swatch == 3:
         leftMostY = landmarks.part(19).x
         rightMostY = landmarks.part(24).x
         bottom = min(landmarks.part(19).y, landmarks.part(24).y)
-        top = bottom - 60  # tbd
+        top = bottom - 60  # arbitrary num
         foreheadPoints = np.concatenate(
             (foreheadPoints, np.array([(leftMostY, bottom)]))
         )
@@ -130,11 +154,10 @@ def createMask(landmarks, specific_landmarks, image, swatch=0):
     # Apply mask to original image to get left eye image
     maskedImage = cv2.bitwise_and(image, image, mask=mask)
 
-    # return maskedImage
-
     # Crop the image to the masked part
     x, y, w, h = cv2.boundingRect(mask)
     croppedImage = maskedImage[y : y + h, x : x + w]
+
     return croppedImage
 
 
@@ -181,7 +204,23 @@ def find_iris(eyeMask):
 """
 
 
-def getLabColorSpace(img):
+def getLabColorSpace(img: np.ndarray) -> List[int]:
+    """
+    This function takes an RGB image as input and converts it to the LAB color space. 
+    It then extracts the L, a, and b channels of the LAB image and calculates the average values of the a and b channels, 
+    using a mask to exclude black pixels. Finally, it returns a tuple of the average L, a, and b values.
+
+    Parameters:
+    ----------
+    img : np.ndarray 
+        A 3-dimensional NumPy array representing an RGB image.
+    
+    Returns:
+    -------
+    lab_avg : List[int]
+        Tuple of the average L, a, and b values
+    """
+
     # Convert RGB to LAB
     img_lab = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
     mask = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
@@ -202,7 +241,9 @@ def getLabColorSpace(img):
     a_avg = np.mean(a_values)
     b_avg = np.mean(b_values)
 
-    return (l_avg, a_avg, b_avg)
+    lab_avg = (l_avg, a_avg, b_avg)
+
+    return lab_avg
 
 
 # Return the undertone using the 3 swatches - left cheek, right cheek, and forehead
@@ -222,16 +263,6 @@ def total_under_tone(imgArr):
     l_avg = l_tot / 3
     a_avg = a_tot / 3
     b_avg = b_tot / 3
-
-    """
-    # Threshold for cool, neutral, warm
-    if avgUndertone > 129:
-        print("Cool")
-    elif avgUndertone >= 128:
-        print("Neutral")
-    else:
-        print("Warm")
-    """
 
     return (l_avg, a_avg, b_avg)
 
