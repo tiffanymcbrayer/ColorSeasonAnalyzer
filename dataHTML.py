@@ -165,11 +165,15 @@ def display_eye_info_HTML(filename:str, start_img:int, end_img:int) -> None:
         f.write(html)
 
 
+<<<<<<< HEAD
 def display_hair_info_HTML(filename:str, start_img:int, end_img:int) -> None:
     """
     This function generates an HTML file for the color-corrected images retrieved from the Chicago Database. 
     The file will contain the original image, hair image, 3 examples boxes of the top 3 RGB values, along with their corresponding Lab values and top 3 RGB values. 
     The images will be arranged in ascending order based on the hair image L value.
+=======
+# display_eye_info_HTML("test", 210, 230)
+>>>>>>> main
 
     Parameters:
     ----------
@@ -221,7 +225,13 @@ def display_hair_info_HTML(filename:str, start_img:int, end_img:int) -> None:
             mask, num_colors=3, value_threshold=25, in_BGR=1
         )
         """
-        top_3_colors, l_hair, a_hair, b_hair, hair_mask = facial_features.get_hair_values(cc_image, in_BGR=1)
+        (
+            top_3_colors,
+            l_hair,
+            a_hair,
+            b_hair,
+            hair_mask,
+        ) = facial_features.get_hair_values(cc_image, in_BGR=1)
 
         # Lab values,
         data.append(
@@ -283,12 +293,16 @@ def display_hair_info_HTML(filename:str, start_img:int, end_img:int) -> None:
         f.write(html)
 
 
+<<<<<<< HEAD
 def display_all_features_HTML(img_str: str, counter: int, ours: bool, color_correct: bool, in_BGR: int) -> List[str]:
     """
     This function generates the rows for a single image that will appear in the HTML file containing all feature information.
     What is displayed on the HTML file: Original image, forehead, left cheek, right cheek images, skin Lab value, 
     left eye, right eye, left eye iris box, example of RGB value, eye Lab values, eye RGB value,
     hair image, 3 examples boxes of the top 3 RGB values, hair Lab value and top 3 RGB values. 
+=======
+# display_hair_info_HTML("test", 215, 220)
+>>>>>>> main
 
     Parameters:
     ----------
@@ -603,6 +617,7 @@ directory_name = "test_HTML_files/"
 if not os.path.exists(directory_name):
     os.makedirs(directory_name)
 
+<<<<<<< HEAD
 display_skin_info_HTML(directory_name + "test_skin_chicago", 0, 1)
 display_eye_info_HTML(directory_name + "test_eyes_chicago", 0, 1)
 display_hair_info_HTML(directory_name + "test_hair_chicago", 0, 1)
@@ -627,3 +642,21 @@ create_HTML_file_all_features(directory_name + "test_chicago_photos", 0, 1)
 
 
 
+=======
+# Use this function to look through the images in the ChicagoFaceDatabaseImages start-end
+# HTML filename, start img #, end img #, color_correct True or False
+# create_HTML_file_all_features("test", 0, 2)
+
+
+# Use this function to look at one specific image
+# HTML filename, color_correct True or False
+# img_str = "OurPhotos/DSC06481_2.JPG"
+# create_HTML_file_all_features_specific("test", img_str,  1)
+
+
+# Use this function to look through all the images in OurPhotos
+# img_list = ["DSC06469.JPG", "DSC06471.JPG", "DSC06473.JPG", "DSC06474.JPG","DSC06477.JPG",
+#            "DSC06479.JPG", "DSC06481.JPG", "DSC06483.JPG", "DSC06484.JPG", "DSC06488.JPG",
+#             "DSC06489.JPG", "DSC06491.JPG", "DSC06494.JPG"]
+# create_HTML_file_all_features_specific_our_photos("test_ours", "OurPhotos/", img_list, True)
+>>>>>>> main
