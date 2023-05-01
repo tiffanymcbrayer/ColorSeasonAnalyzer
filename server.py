@@ -11,10 +11,10 @@ from werkzeug.utils import secure_filename
 
 
 app = Flask(__name__)
-app.secret_key = 'sk'
+app.secret_key = "sk"
 
 
-#global var
+# global var
 data = []
 # Hex codes associated with each season
 colors = {'Winter': {
@@ -145,26 +145,28 @@ colors = {'Winter': {
     'Gold-tone Accessories': '#B49B57'
 }}
 
-#ROUTES
-@app.route('/')
+# ROUTES
+@app.route("/")
 def home():
     return render_template("home.html")
 
-@app.route('/', methods=['POST'])
+
+@app.route("/", methods=["POST"])
 def back():
     return render_template("home.html")
 
-@app.route('/submit', methods=["POST"])
+
+@app.route("/submit", methods=["POST"])
 def submit_form():
     # if request.form['action'] == 'submit' and request.form['nextpg']:
     return redirect(url_for("get_photo"))
 
 
-@app.route('/upload', methods=["POST"])
+@app.route("/upload", methods=["POST"])
 def upload_photo():
     global data
-    if request.method == 'POST':
-        uploaded_img = request.files['upload']
+    if request.method == "POST":
+        uploaded_img = request.files["upload"]
         img_filename = secure_filename(uploaded_img.filename)
         uploaded_img.save(os.path.join("./static/images/", img_filename))
         session["uploaded_img_file_path"] = os.path.join(
@@ -202,33 +204,35 @@ def upload_photo():
     return 0
 
 
-@app.route('/get_photo')
+@app.route("/get_photo")
 def get_photo():
     return render_template("get_photo.html")
 
 
-@app.route('/color_analysis', methods=['POST'])
+@app.route("/color_analysis", methods=["POST"])
 def color_analysis():
     global data
     global colors
-    if request.method == 'POST':
-        img_path = session.get('uploaded_img_file_path', None)
-        
+    if request.method == "POST":
+        img_path = session.get("uploaded_img_file_path", None)
+
         predict = predict_image(img_path, data)
         num = int(predict)
         if num == 0:
-            predict = 'Winter'
+            predict = "Winter"
         elif num == 1:
-            predict = 'Summer'
+            predict = "Summer"
         elif num == 2:
-            predict = 'Fall'
+            predict = "Fall"
         else:
-            predict = 'Spring'
-            
-        color_swatches = colors[predict]
-        return render_template('analysis.html', predict = predict, color_swatches = color_swatches)
-    return 0
-        
+            predict = "Spring"
 
-if __name__ == '__main__':
+        color_swatches = colors[predict]
+        return render_template(
+            "analysis.html", predict=predict, color_swatches=color_swatches
+        )
+    return 0
+
+
+if __name__ == "__main__":
     app.run(debug=True)
