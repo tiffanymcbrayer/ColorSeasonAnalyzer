@@ -125,8 +125,8 @@ def read_our_data():
     It gets the patterns and targets so that they can be used for training and/or testing.
     """
 
-    f2 = open("ourPatterns2 copy.txt", "r")
-    f = open("ourTargets copy.txt", "r")
+    f2 = open("ourPatterns2.txt", "r")
+    f = open("ourTargets.txt", "r")
     count = 0
     f2_lines = f2.readlines()
     patterns = []
@@ -349,8 +349,7 @@ def predict_image(image, data=None, file="best.h5"):
     test_data = get_training_data(test_data)[4]
     # print(test_data)
     output = network.predict(test_data)
-    return output
-
+    return np.argmax(output)
 
 def write_pattern(ours=False, filename="patterns.txt"):
     """
