@@ -4,7 +4,7 @@ import glob
 import numpy.typing as npt
 
 
-def color_corrector(image:str) -> None:
+def color_corrector(image: str) -> None:
     """This function is to color correct all original photos from the Chicago Face Database. This is mainly using the algorithm from
     https://stackoverflow.com/questions/70876252/how-to-do-color-cast-removal-or-color-coverage-in-python on how to remove color cast
     from photos. To remove color cast you must convert the image from BGR to HSV color space and then flip the hue channel

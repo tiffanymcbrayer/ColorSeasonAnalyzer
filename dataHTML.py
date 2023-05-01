@@ -137,7 +137,7 @@ def display_eye_info_HTML(filename, start_img, end_img):
         f.write(html)
 
 
-#display_eye_info_HTML("test", 210, 230)
+# display_eye_info_HTML("test", 210, 230)
 
 
 # Going through color correcting images and ording hair info
@@ -183,7 +183,13 @@ def display_hair_info_HTML(filename, start_img, end_img):
             mask, num_colors=3, value_threshold=25, in_BGR=1
         )
         """
-        top_3_colors, l_hair, a_hair, b_hair, hair_mask = facial_features.get_hair_values(cc_image, in_BGR=1)
+        (
+            top_3_colors,
+            l_hair,
+            a_hair,
+            b_hair,
+            hair_mask,
+        ) = facial_features.get_hair_values(cc_image, in_BGR=1)
 
         # Lab values,
         data.append(
@@ -245,7 +251,7 @@ def display_hair_info_HTML(filename, start_img, end_img):
         f.write(html)
 
 
-#display_hair_info_HTML("test", 215, 220)
+# display_hair_info_HTML("test", 215, 220)
 
 
 # -----------------------------------------------------------------------------
@@ -491,8 +497,7 @@ def create_HTML_file_all_features(
 
 # Use this function to look through the images in the ChicagoFaceDatabaseImages start-end
 # HTML filename, start img #, end img #, color_correct True or False
-#create_HTML_file_all_features("test", 0, 2)
-
+# create_HTML_file_all_features("test", 0, 2)
 
 
 # Use this function to look at one specific image
@@ -502,7 +507,21 @@ def create_HTML_file_all_features(
 
 
 # Use this function to look through all the images in OurPhotos
-img_list = ["DSC06469.JPG", "DSC06471.JPG", "DSC06473.JPG", "DSC06474.JPG","DSC06477.JPG",
-           "DSC06479.JPG", "DSC06481.JPG", "DSC06483.JPG", "DSC06484.JPG", "DSC06488.JPG",
-            "DSC06489.JPG", "DSC06491.JPG", "DSC06494.JPG"]
-create_HTML_file_all_features_specific_our_photos("test_ours", "OurPhotos/", img_list, True)
+img_list = [
+    "DSC06469.JPG",
+    "DSC06471.JPG",
+    "DSC06473.JPG",
+    "DSC06474.JPG",
+    "DSC06477.JPG",
+    "DSC06479.JPG",
+    "DSC06481.JPG",
+    "DSC06483.JPG",
+    "DSC06484.JPG",
+    "DSC06488.JPG",
+    "DSC06489.JPG",
+    "DSC06491.JPG",
+    "DSC06494.JPG",
+]
+create_HTML_file_all_features_specific_our_photos(
+    "test_ours", "OurPhotos/", img_list, True
+)

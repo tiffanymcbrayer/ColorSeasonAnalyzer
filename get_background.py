@@ -7,13 +7,13 @@ import numpy.typing as npt
 def get_avg_bg(cv_img: np.ndarray) -> np.ndarray:
     """
     This function acts as a color corrector for our own visual data separate from the general color corrector.
-    Since we want our visual data to mimic the dataset of photos as much as possible, we have another color corrector getting the hue and saturation 
+    Since we want our visual data to mimic the dataset of photos as much as possible, we have another color corrector getting the hue and saturation
     values of the background of the dataset and comparing it to our photos. We make up for the difference in hue and saturation in our
-    photos. 
-    
+    photos.
+
     Parameters:
     ----------
-    cv_img : np.ndarray 
+    cv_img : np.ndarray
         Original photo from our own visual data.
 
     Returns:
@@ -49,4 +49,3 @@ def get_avg_bg(cv_img: np.ndarray) -> np.ndarray:
     )
 
     return correct_img
-

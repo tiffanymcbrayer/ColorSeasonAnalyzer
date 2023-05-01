@@ -13,9 +13,9 @@ from typing import List, Tuple
 
 def detect_facial_landmarks(image: np.ndarray) -> List[np.ndarray]:
     """
-    This function detects facial landmark points in an input image using the Dlib library http://dlib.net/ 
-    The facial landmark points are used to identify the features: left eye, right eye, left cheek, right cheek, and forehead. 
-    With the list of points for each feature, it then creates a mask for each. Finally, the function returns a list of images 
+    This function detects facial landmark points in an input image using the Dlib library http://dlib.net/
+    The facial landmark points are used to identify the features: left eye, right eye, left cheek, right cheek, and forehead.
+    With the list of points for each feature, it then creates a mask for each. Finally, the function returns a list of images
     representing the facial features.
 
     Parameters:
@@ -29,7 +29,7 @@ def detect_facial_landmarks(image: np.ndarray) -> List[np.ndarray]:
         A list of images representing the facial features detected: left eye, right eye, left cheek, right cheek, and forehead.
     """
 
-    # Convert image to grayscale 
+    # Convert image to grayscale
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     # Use Dlib to initialize face detector
@@ -53,7 +53,7 @@ def detect_facial_landmarks(image: np.ndarray) -> List[np.ndarray]:
 
         # Initialize facial features mask list
         facial_features = []
-        
+
         # EYES
         left_eye_landmarks = [36, 37, 38, 39, 40, 41]
         left_eye_image = create_mask(landmarks, left_eye_landmarks, image)
@@ -63,9 +63,9 @@ def detect_facial_landmarks(image: np.ndarray) -> List[np.ndarray]:
         facial_features.append(right_eye_image)
 
         # LIPS - Not using right now
-        #lipsLandmarks = [48,49,50,51,52,53,54,55,56,57,58,59]
-        #lipsImage = create_mask(landmarks, lipsLandmarks, image)
-        #facial_features.append(lipsImage)
+        # lipsLandmarks = [48,49,50,51,52,53,54,55,56,57,58,59]
+        # lipsImage = create_mask(landmarks, lipsLandmarks, image)
+        # facial_features.append(lipsImage)
         facial_features.append("")
 
         # CHEEKS
@@ -83,18 +83,23 @@ def detect_facial_landmarks(image: np.ndarray) -> List[np.ndarray]:
     return facial_features
 
 
-def create_mask(landmarks: np.ndarray, specific_landmarks: np.ndarray, image: np.ndarray, swatch: int = 0) -> np.ndarray:
+def create_mask(
+    landmarks: np.ndarray,
+    specific_landmarks: np.ndarray,
+    image: np.ndarray,
+    swatch: int = 0,
+) -> np.ndarray:
     """
-    This function is a helper to detect_facial_landmarks used to create masks based on the specific_landmarks points in detect_facial_landmarks. 
+    This function is a helper to detect_facial_landmarks used to create masks based on the specific_landmarks points in detect_facial_landmarks.
     It adds extra points to create masks for the left cheek, right cheek, and forehead. The function returns a cropped image of the original image with the mask applied.
-    
+
     Parameters:
     ----------
-    landmarks : np.ndarray 
+    landmarks : np.ndarray
         A 68 point facial landmark array obtained by using the dlib library.
-    specific_landmarks : np.ndarray  
+    specific_landmarks : np.ndarray
         A list of specific landmark points to be used to create a mask for a specific facial feature.
-    image : np.ndarray 
+    image : np.ndarray
         The input image on which the mask is to be applied.
     swatch : int
          An optional integer parameter that specifies which facial feature the mask should be created for.
@@ -106,14 +111,14 @@ def create_mask(landmarks: np.ndarray, specific_landmarks: np.ndarray, image: np
     """
     # The left cheek, right cheek, and forehead need added points
     new_point = None
-    
-    # Left cheek - extra points added closer to nose 
+
+    # Left cheek - extra points added closer to nose
     if swatch == 1:
         x = landmarks.part(48).x
         y = landmarks.part(2).y
         new_point = (x, y)
 
-    # Right cheek - extra points added closer to nose 
+    # Right cheek - extra points added closer to nose
     if swatch == 2:
         x = landmarks.part(54).x
         y = landmarks.part(14).y
@@ -132,8 +137,12 @@ def create_mask(landmarks: np.ndarray, specific_landmarks: np.ndarray, image: np
         forehead_points = np.concatenate(
             (forehead_points, np.array([(right_most_y, bottom)]))
         )
-        forehead_points = np.concatenate((forehead_points, np.array([(right_most_y, top)])))
-        forehead_points = np.concatenate((forehead_points, np.array([(left_most_y, top)])))
+        forehead_points = np.concatenate(
+            (forehead_points, np.array([(right_most_y, top)]))
+        )
+        forehead_points = np.concatenate(
+            (forehead_points, np.array([(left_most_y, top)]))
+        )
         forehead_points = forehead_points.astype(int)
 
     # Create mask
@@ -161,13 +170,13 @@ def create_mask(landmarks: np.ndarray, specific_landmarks: np.ndarray, image: np
 
 def find_iris(eye_mask: np.ndarray) -> List[float]:
     """
-    This function is a helper to detect a part of the iris to extract it's color. 
+    This function is a helper to detect a part of the iris to extract it's color.
     It uses the bounding box of the mask to segregate a rectangle under the pupil. The color histogram of the rectangle is then calculated and the
     most prominent color is retrieved. The Lab color space of the mask is returned along with the main color of the iris and the mask.
-    
+
     Parameters:
     ----------
-    eye_mask : np.ndarray 
+    eye_mask : np.ndarray
         An array of the mask of the iris taken from the dlib calculation.
 
     Returns:
@@ -213,19 +222,17 @@ def find_iris(eye_mask: np.ndarray) -> List[float]:
     return (eye_color, l_val, a_val, b_val, iris_mask)
 
 
-
-
 def get_lab_color_space(img: np.ndarray) -> List[int]:
     """
-    This function takes an RGB image as input and converts it to the LAB color space. 
-    It then extracts the L, a, and b channels of the LAB image and calculates the average values of the a and b channels, 
+    This function takes an RGB image as input and converts it to the LAB color space.
+    It then extracts the L, a, and b channels of the LAB image and calculates the average values of the a and b channels,
     using a mask to exclude black pixels. Finally, it returns a tuple of the average L, a, and b values.
 
     Parameters:
     ----------
-    img : np.ndarray 
+    img : np.ndarray
         A 3-dimensional NumPy array representing an RGB image.
-    
+
     Returns:
     -------
     lab_avg : Tuple[int]
@@ -258,14 +265,14 @@ def get_lab_color_space(img: np.ndarray) -> List[int]:
 # higher a* value would indicate a cooler or pinker undertone, while a lower a* value would indicate a warmer or yellower undertone.
 def total_under_tone(img_arr: List[np.ndarray]) -> Tuple[int]:
     """
-    This function calculates the undertone of an image by taking three image swatches (left cheek, right cheek, and forehead) 
+    This function calculates the undertone of an image by taking three image swatches (left cheek, right cheek, and forehead)
     and calculating the average LAB color values of each swatch. It then returns the average LAB values as a tuple.
 
     Parameters:
     ----------
-    imgArr : List[np.ndarray] 
+    imgArr : List[np.ndarray]
         List of 3-dimensional NumPy arrays representing an RGB image.
-    
+
     Returns:
     -------
     lab_avg : Tuple[int]
@@ -289,165 +296,9 @@ def total_under_tone(img_arr: List[np.ndarray]) -> Tuple[int]:
     return (l_avg, a_avg, b_avg)
 
 
-def get_hair(img_path: str) -> List[float]:
-    """
-    This function is used to find the average rgb value of the hair in an image.
-    It uses a seed point in the top middle of the image and applied the helper function flood_fill.
-    The average rgb value, Lab value and hair image is returned.
-
-    Parameters:
-    ----------
-    img_path : str
-        The file path to an image that the function will process
-
-    Returns:
-    -------
-    average_hair_value_color : List[float]
-        The main rgb color of the hair.
-    l_val : float
-        The lightness value of the hair mask from LAB color space.
-    a_val : float
-        The a value of the hair mask from LAB color space.
-    b_val : float
-        The b value of the hair mask from LAB color space.
-    resized_masked_image : np.ndarray
-        The resized extracted hair image
-    """
-    image = cv2.imread(img_path)
-
-    # Convert the image to grayscale
-    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-    # Apply a median blur to reduce noise
-    blurred_image = cv2.medianBlur(gray_image, 5)
-
-    # Convert the grayscale image to a 3-channel image
-    blurred_image_3ch = cv2.cvtColor(blurred_image, cv2.COLOR_GRAY2BGR)
-
-    # Set the threshold and new_value
-    threshold = 1
-    new_value = (128, 128, 128)
-
-    # Find the seed point in the middle of the image at the top and apply the floodFill function
-    middle_column = blurred_image.shape[1] // 2
-    for y in range(blurred_image.shape[0]):
-        if blurred_image[y, middle_column] < new_value[0] - threshold:
-            seed_point = (middle_column, y)
-            mask = np.zeros(
-                (blurred_image_3ch.shape[0] + 2, blurred_image_3ch.shape[1] + 2),
-                dtype=np.uint8,
-            )
-            lo_diff = (threshold,) * 3
-            up_diff = (threshold,) * 3
-            cv2.floodFill(
-                blurred_image_3ch,
-                mask,
-                seed_point,
-                new_value,
-                lo_diff,
-                up_diff,
-                cv2.FLOODFILL_FIXED_RANGE,
-            )
-            break
-
-    # Convert the 3-channel image back to a single channel image
-    blurred_image_filled = cv2.cvtColor(blurred_image_3ch, cv2.COLOR_BGR2GRAY)
-
-    # Set the y-coordinate limit
-    y_limit = 50
-
-    (average_hair_value_color, lVal, aVal, bVal) = (
-        (0.0, 0.0, 0.0, 0.0),
-        0.0,
-        128.0,
-        128.0,
-    )
-
-    while (average_hair_value_color, lVal, aVal, bVal) == (
-        (0.0, 0.0, 0.0, 0.0),
-        0.0,
-        128.0,
-        128.0,
-    ):
-        y_limit += 50
-        # Create a region of interest (ROI) above the y-coordinate limit
-        roi = blurred_image_filled[:y_limit, :]
-
-        # Create the hair mask using the ROI
-        _, hair_mask_roi = cv2.threshold(
-            roi, new_value[0] - threshold, 255, cv2.THRESH_BINARY
-        )
-
-        hair_mask_roi_inv = cv2.bitwise_not(hair_mask_roi)
-
-        # Create a full-size hair mask with the same dimensions as the original image
-        hair_mask = np.zeros_like(blurred_image_filled)
-        hair_mask[:y_limit, :] = hair_mask_roi_inv
-
-        # hair_mask_inv = cv2.bitwise_not(hair_mask)
-
-        # Create the masked image
-        masked_image = cv2.bitwise_and(image, image, mask=hair_mask)
-        l_val, a_val, b_val = get_lab_color_space(masked_image)
-        # Compute the average pixel value of the detected hair region in the color image
-        average_hair_value_color = cv2.mean(image, mask=hair_mask)
-
-        resized_image = cv2.resize(
-            image, None, fx=0.25, fy=0.25, interpolation=cv2.INTER_AREA
-        )
-
-        resized_hair_mask = cv2.resize(
-            hair_mask, None, fx=0.25, fy=0.25, interpolation=cv2.INTER_AREA
-        )
-        # masked_image = cv2.bitwise_and(image, image, mask=hair_mask)
-        resized_masked_image = cv2.resize(
-            masked_image, None, fx=0.25, fy=0.25, interpolation=cv2.INTER_AREA
-        )
-
-
-    return (average_hair_value_color, l_val, a_val, b_val, resized_masked_image)
-
-
-def flood_fill(image: np.ndarray, seed_point: Tuple, threshold: int, new_value: int) -> None:
-    """
-    This function performs flood-fill algorithm on a given image starting from a specified seed point, 
-    and replaces all pixels within a certain threshold with a new value.
-
-    Parameters:
-    ----------
-    image: numpy.ndarray
-        A 2D array representing an image.
-    seed_point: tuple
-        A tuple representing the starting point of the flood-fill algorithm.
-    threshold: int
-        An integer representing the maximum difference between a pixel's value and the seed point's value to be considered for replacement.
-    new_value: int
-        An integer representing the new value that will replace all pixels within the threshold.
-
-    Returns:
-    ----------
-        None
-    """
-    h, w = image.shape
-    visited = np.zeros_like(image, np.uint8)
-    stack = [seed_point]
-
-    while stack:
-        x, y = stack.pop()
-        if visited[y, x]:
-            continue
-        visited[y, x] = 1
-
-        if abs(image[y, x] - image[seed_point]) <= threshold:
-            image[y, x] = new_value
-
-            for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
-                nx, ny = x + dx, y + dy
-                if 0 <= nx < w and 0 <= ny < h:
-                    stack.append((nx, ny))
-
-
-def find_intersection(line1_point1: tuple, line1_point2: tuple, line2_point1: tuple, line2_point2: tuple) -> tuple:
+def find_intersection(
+    line1_point1: tuple, line1_point2: tuple, line2_point1: tuple, line2_point2: tuple
+) -> tuple:
     """
     This function finds and returns the intersection of two lines where the two lines are made of 2 points each.
 
@@ -460,7 +311,7 @@ def find_intersection(line1_point1: tuple, line1_point2: tuple, line2_point1: tu
     line2_point1 : tuple
         A tuple containing the (x, y) coordinates of the first point on the second line.
     line2_point2 : tuple
-        A tuple containing the (x, y) coordinates of the second point on the second line.   
+        A tuple containing the (x, y) coordinates of the second point on the second line.
 
     Returns:
     ----------
@@ -496,21 +347,23 @@ def find_intersection(line1_point1: tuple, line1_point2: tuple, line2_point1: tu
 
 
 # Right now getting top 3 colors in a mask
-def get_top_color(mask: np.ndarray, num_colors: int=3, value_threshold: int=25, in_BGR: int=1) -> List[Tuple]:
+def get_top_color(
+    mask: np.ndarray, num_colors: int = 3, value_threshold: int = 25, in_BGR: int = 1
+) -> List[Tuple]:
     """
-    This function takes in an image mask and determines the num_colors top colors that have a a value difference of at least value_threshold. 
-    The function computes the color histogram of the mask and excludes the black background of the mask setting its count to 0. 
-    Next, it sorts the histogram indices in descending order and retrieves the top num_colors colors with a value difference greater than the threshold, value_threshold. 
+    This function takes in an image mask and determines the num_colors top colors that have a a value difference of at least value_threshold.
+    The function computes the color histogram of the mask and excludes the black background of the mask setting its count to 0.
+    Next, it sorts the histogram indices in descending order and retrieves the top num_colors colors with a value difference greater than the threshold, value_threshold.
     The function returns the a list of tuples of the top 3 rgb values in the mask.
-    
+
 
     Parameters:
     ----------
     mask: np.ndarray
         A 3-dimensional NumPy array representing an RGB image.
-    num_colors (optional): int  
+    num_colors (optional): int
         An integer indicating the number of colors to be returned. Default is 3.
-    value_threshold (optional): int 
+    value_threshold (optional): int
         An integer indicating the threshold for the color value difference. Default is 25.
     in_BGR (optional): int
         A flag indicating indicate whether the incoming mask is in BGR format. Default is 1.
@@ -527,13 +380,13 @@ def get_top_color(mask: np.ndarray, num_colors: int=3, value_threshold: int=25, 
     hist_flatten = hist.flatten()
 
     # Set the background of the mask (0) to be of count 0
-    hist_flatten[0] = 0  
+    hist_flatten[0] = 0
 
-    # Get the indices of the top colors sorted 
-    max_color_inds = np.argsort(hist_flatten)[::-1]  
+    # Get the indices of the top colors sorted
+    max_color_inds = np.argsort(hist_flatten)[::-1]
     top_3_colors = []
-    
-    # Append rgb tuple of the top colors to top_3_colors when the color value is greater than the threshold 
+
+    # Append rgb tuple of the top colors to top_3_colors when the color value is greater than the threshold
     for ind in max_color_inds:
         bgr = np.unravel_index(ind, hist.shape)
         rgb = (bgr[2], bgr[1], bgr[0])
@@ -546,33 +399,32 @@ def get_top_color(mask: np.ndarray, num_colors: int=3, value_threshold: int=25, 
                     top_3_colors.append(rgb)
             if len(top_3_colors) == num_colors:
                 break
-    
-    # If the incoming mask is in BGR than flip the top colors to the be in rgb 
+
+    # If the incoming mask is in BGR than flip the top colors to the be in rgb
     if in_BGR:
         top_3_colors = [c[::-1] for c in top_3_colors]
     return top_3_colors
 
 
-
 def get_hair_mask(image: np.ndarray, threshold_value: int) -> np.ndarray:
     """
-    This function has two parts. 
-    Part (1) this function takes in an image and a threshold value - it detects faces in the image using 
-    an enhanced facial pre-trained model file: shape_predictor_81_face_landmarks.dat, which identifies an “additional 13 landmark points 
-    to cover the forehead area” https://github.com/codeniko/shape_predictor_81_face_landmarks . It than generates a mask of the hair region 
-    using specific landmark points on the face, including additional points created to form a top center point on the forehead. 
+    This function has two parts.
+    Part (1) this function takes in an image and a threshold value - it detects faces in the image using
+    an enhanced facial pre-trained model file: shape_predictor_81_face_landmarks.dat, which identifies an “additional 13 landmark points
+    to cover the forehead area” https://github.com/codeniko/shape_predictor_81_face_landmarks . It than generates a mask of the hair region
+    using specific landmark points on the face, including additional points created to form a top center point on the forehead.
     The mask is applied to the original image to obtain the hair region, which is then cropped to the masked part.
-    Part (2) Takes the cropped hair image, applies a medium filter and threshold value to create a binary mask of just the hair, 
-    finds the contours of the hair using OpenCV, draws them on a black mask, inverts the mask to select only the background outside of the hair region, 
+    Part (2) Takes the cropped hair image, applies a medium filter and threshold value to create a binary mask of just the hair,
+    finds the contours of the hair using OpenCV, draws them on a black mask, inverts the mask to select only the background outside of the hair region,
     and combines the original image with the mask using the bitwise_or function to produce the final result.
 
     Parameters:
     ----------
     image: np.ndarray
         A 3-dimensional NumPy array representing an RGB image.
-    threshold_value : int 
+    threshold_value : int
         An integer indicating the threshold value to create a binary mask
-    
+
     Returns:
     ----------
     result: np.ndarray
@@ -694,20 +546,21 @@ def get_hair_mask(image: np.ndarray, threshold_value: int) -> np.ndarray:
 
     return result
 
+
 def get_hair_values(image: np.ndarray, in_BGR: int) -> Tuple:
     """
-    This function takes in a hair image and returns a tuple containing the top 3 colors in the hair, as well as the Lab values of the hair, 
-    and a hair mask created using a threshold value of 70. If the L value of the hair is greater than 50 (if the hair has high brightness) 
+    This function takes in a hair image and returns a tuple containing the top 3 colors in the hair, as well as the Lab values of the hair,
+    and a hair mask created using a threshold value of 70. If the L value of the hair is greater than 50 (if the hair has high brightness)
     the threshold value is increased to 120 and the hair mask and Lab values are recalculated before computing the top 3 color values of the hair.
     If the image is in BGR than in_BGR = 1 and get_top_color will flip the order of the color tuples.
-    
+
     Parameters:
     ----------
     image: np.ndarray
         A 3-dimensional NumPy array representing an RGB image.
-    in_BGR : int 
+    in_BGR : int
         A flag indicating indicate whether the incoming mask is in BGR format
-    
+
     Returns:
     ----------
     top_3_colors: List[Tuple]
@@ -736,16 +589,16 @@ def get_hair_values(image: np.ndarray, in_BGR: int) -> Tuple:
         l_hair, a_hair, b_hair = get_lab_color_space(hair_image)
 
     # Compute the top 3 colors in the hair
-    top_3_colors = get_top_color(
-        hair_image, 3, 25, in_BGR
-    )
+    top_3_colors = get_top_color(hair_image, 3, 25, in_BGR)
 
     return (top_3_colors, l_hair, a_hair, b_hair, hair_image)
 
 
-def facial_features_and_values(img_str: str, ours: bool, color_correct: bool, in_BGR: int) -> dict:
+def facial_features_and_values(
+    img_str: str, ours: bool, color_correct: bool, in_BGR: int
+) -> dict:
     """
-    This function reads in a string incorporates all the functions in the file to create and return a dictionary with cropped images of the eyes, cheeks, forehead, and hair. 
+    This function reads in a string incorporates all the functions in the file to create and return a dictionary with cropped images of the eyes, cheeks, forehead, and hair.
     The dictionary also includes the RGB and Lab values for the images
 
     Parameters:
@@ -762,7 +615,7 @@ def facial_features_and_values(img_str: str, ours: bool, color_correct: bool, in
     Returns:
     ----------
     data : dict
-        Dictionary containing original image, color corrected image, left eye, right eye, left cheek, right cheek, forehead, 
+        Dictionary containing original image, color corrected image, left eye, right eye, left cheek, right cheek, forehead,
         skin Lab value, eye RGB value, eye Lab value, iris image, hair Lab value, hair top 3 RGB values, hair image
     """
     original_image = cv2.imread(img_str)
