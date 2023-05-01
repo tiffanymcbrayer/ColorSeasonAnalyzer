@@ -1,15 +1,14 @@
 import dlib
 import cv2
 import numpy as np
-import glob
-from PIL import Image
 import color_corrector
-import matplotlib.pyplot as plt
 import get_background
-
 import typing as npt
 from typing import List, Tuple
 
+"""
+This file contains functions for processing facial images and extracting features including skin, eyes, and hair.
+"""
 
 def detect_facial_landmarks(image: np.ndarray) -> List[np.ndarray]:
     """
