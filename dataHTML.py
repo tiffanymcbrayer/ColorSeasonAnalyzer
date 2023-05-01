@@ -128,7 +128,7 @@ def display_eye_info_HTML(filename, startImg, endImg):
         img_str = base64.b64encode(buffer).decode("utf-8")
         rows.append(f'<td><img src="data:image/jpeg;base64,{img_str}"></td>')
 
-        rows.append(f"<td>(L,a,b) = ({ar[1]:.2f}, {ar[2]}, {ar[3]})</td>")
+        rows.append(f"<td>(L,a,b) = ({ar[1]:.2f}, {ar[2]:.2f}, {ar[3]:.2f})</td>")
 
         bgrVal = ar[0]
         rows.append(f"<td>(R,G,B) = ({bgrVal[2]},{bgrVal[1]},{bgrVal[0]})</td>")
@@ -141,7 +141,7 @@ def display_eye_info_HTML(filename, startImg, endImg):
         f.write(html)
 
 
-# display_eye_info_HTML("test", 215, 221)
+#display_eye_info_HTML("test", 210, 230)
 
 
 # Going through color correcting images and ording hair info
@@ -172,29 +172,31 @@ def display_hair_info_HTML(filename, startImg, endImg):
         f = facial_features.detect_facial_landmarks(cc_image)
         imgArr = [f[3], f[4], f[5]]
         l_avg, a_avg, b_avg = facial_features.total_under_tone(imgArr)
-
-        threshold_value = 100
+        """
+        threshold_value = 70 # 100
         mask = facial_features.get_hair_mask(cc_image, threshold_value)
 
-        l_hair, a_hair, b_hair = facial_features.getLabColorSpace(mask)
-        if l_hair > 70:
+        l_hair, a_hair, b_hair = facial_features.get_lab_color_space(mask)
+        if l_hair > 50:
             # REDO THE HAIR MASK!! - was at 190
             threshold_value = 120
             mask = facial_features.get_hair_mask(cc_image, threshold_value)
-            l_hair, a_hair, b_hair = facial_features.getLabColorSpace(mask)
+            l_hair, a_hair, b_hair = facial_features.get_lab_color_space(mask)
 
         top3colors = facial_features.get_top_color(
-            mask, num_colors=3, value_threshold=25, inBGR=1
+            mask, num_colors=3, value_threshold=25, in_BGR=1
         )
+        """
+        top_3_colors, l_hair, a_hair, b_hair, hair_mask = facial_features.get_hair_values(cc_image, in_BGR=1)
 
         # Lab values,
         data.append(
             (
                 (l_avg, a_avg, b_avg),
                 cc_image,
-                mask,
+                hair_mask,
                 (l_hair, a_hair, b_hair),
-                top3colors,
+                top_3_colors,
             )
         )
 
@@ -217,7 +219,7 @@ def display_hair_info_HTML(filename, startImg, endImg):
         _, buffer = cv2.imencode(".jpg", img)
         img_str = base64.b64encode(buffer).decode("utf-8")
         rows.append(
-            f'<td><img src="data:image/jpeg;base64,{img_str}" width="{img.shape[1]//2}" height="{img.shape[0]//2}"></td>'
+            f'<td><img src="data:image/jpeg;base64,{img_str}" width="{img.shape[1]//4}" height="{img.shape[0]//4}"></td>'
         )
 
         for i in range(0, 3):
@@ -247,18 +249,17 @@ def display_hair_info_HTML(filename, startImg, endImg):
         f.write(html)
 
 
-# display_hair_info_HTML("test", 215, 221)
-# display_hair_info_HTML("test", 60, 66)
+display_hair_info_HTML("test", 215, 226)
 
 
 # -----------------------------------------------------------------------------
 # THESE FUNCTIONS ARE USED TO DISPLAY ALL THE FEATURES AND VALUES ON A "TEST" HTML PAGE
 
 
-def display_all_features_HTML(img_str, counter, ours, color_correct, inBGR):
+def display_all_features_HTML(img_str, counter, ours, color_correct, in_BGR):
     rows = []
     data = facial_features.facial_features_and_values(
-        img_str, ours, color_correct, inBGR
+        img_str, ours, color_correct, in_BGR
     )
 
     # original_image = data['original_image']
@@ -280,10 +281,10 @@ def display_all_features_HTML(img_str, counter, ours, color_correct, inBGR):
     rows.append(f"<td>Forehead -- Left cheek -- Right cheek</td>")
     rows.append("</tr><tr>")
     rows.append(f'<td><img src="data:image/jpeg;base64,{img_str}"></td>')
-    _, buffer = cv2.imencode(".jpg", data["cheekLeft"])
+    _, buffer = cv2.imencode(".jpg", data["cheek_left"])
     img_str = base64.b64encode(buffer).decode("utf-8")
     rows.append(f'<td><img src="data:image/jpeg;base64,{img_str}"></td>')
-    _, buffer = cv2.imencode(".jpg", data["cheekRight"])
+    _, buffer = cv2.imencode(".jpg", data["cheek_right"])
     img_str = base64.b64encode(buffer).decode("utf-8")
     rows.append(f'<td><img src="data:image/jpeg;base64,{img_str}"></td>')
     skinLab = data["skinLab"]
@@ -366,7 +367,7 @@ def display_all_features_HTML(img_str, counter, ours, color_correct, inBGR):
 
 
 def create_HTML_file_all_features_specific_our_photos(
-    filename, foldername, imgList, ours=True, color_correct=True, inBGR=1
+    filename, foldername, imgList, ours=True, color_correct=True, in_BGR=1
 ):
     # Create an HTML template for displaying the images
     html_template = """
@@ -390,7 +391,7 @@ def create_HTML_file_all_features_specific_our_photos(
     for img_str in imgList:
         img_str = foldername + img_str
         img_HTML_rows = display_all_features_HTML(
-            img_str, counter, ours, color_correct, inBGR=1
+            img_str, counter, ours, color_correct, in_BGR=1
         )
         rows += img_HTML_rows
         print(counter)
@@ -425,7 +426,7 @@ def create_HTML_file_all_features_specific(
     rows = []
     counter = 0
     img_HTML_rows = display_all_features_HTML(
-        img_str, counter, ours, color_correct, inBGR=1
+        img_str, counter, ours, color_correct, in_BGR=1
     )
     rows += img_HTML_rows
 
@@ -494,7 +495,7 @@ def create_HTML_file_all_features(
 
 # Use this function to look through the images in the ChicagoFaceDatabaseImages start-end
 # HTML filename, start img #, end img #, color_correct True or False
-# create_HTML_file_all_features("test", 220, 230)
+#create_HTML_file_all_features("test", 0, 2)
 
 
 
