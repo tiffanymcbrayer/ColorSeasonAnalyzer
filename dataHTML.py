@@ -502,7 +502,7 @@ def create_HTML_file_all_features(
 
 
 # Use this function to look through all the images in OurPhotos
-img_list = ["DSC06469.JPG", "DSC06471.JPG", "DSC06473.JPG", "DSC06474.JPG","DSC06477.JPG",
-           "DSC06479.JPG", "DSC06481.JPG", "DSC06483.JPG", "DSC06484.JPG", "DSC06488.JPG",
-            "DSC06489.JPG", "DSC06491.JPG", "DSC06494.JPG"]
-create_HTML_file_all_features_specific_our_photos("test_ours", "OurPhotos/", img_list, True)
+# img_list = ["DSC06469.JPG", "DSC06471.JPG", "DSC06473.JPG", "DSC06474.JPG","DSC06477.JPG",
+#            "DSC06479.JPG", "DSC06481.JPG", "DSC06483.JPG", "DSC06484.JPG", "DSC06488.JPG",
+#             "DSC06489.JPG", "DSC06491.JPG", "DSC06494.JPG"]
+# create_HTML_file_all_features_specific_our_photos("test_ours", "OurPhotos/", img_list, True)
