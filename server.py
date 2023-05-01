@@ -16,6 +16,7 @@ app.secret_key = 'sk'
 
 #global var
 data = []
+# Hex codes associated with each season
 colors = {'Winter': {
     'Pure White': '#F0EDE1',
     'Light True Gray': '#D1D3D4',
