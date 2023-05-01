@@ -1,15 +1,32 @@
 import os
 import numpy as np
-
 import cv2
 import base64
 from PIL import Image
-
 import facial_features
+import typing as npt
+from typing import List, Tuple
 
+"""
+This file contains functions to create HTML files to organize and display data with the images and corresponding Lab and RGB values.
+"""
 
-# Display the 3 color swatches (left cheek, right cheek, forehead) and the average Lab values
-def display_skin_info_HTML(filename, start_img, end_img):
+def display_skin_info_HTML(filename:str, start_img:int, end_img:int) -> None:
+    """
+    This function generates an HTML file for the color-corrected images retrieved from the Chicago Database. 
+    The file will contain the images of the person's left cheek, right cheek, and forehead, along with their corresponding Lab values. 
+    The images will be arranged in ascending order based on the person's averaged L value.
+
+    Parameters:
+    ----------
+    filename : str
+        Name of HTML file you want to create and write to 
+    start_img : int
+        The index of the first image to be processed.
+    end_img : int 
+        The index of the last image to be processed (not including)
+    """
+
     # Create an HTML template for displaying the images
     html_template = """
     <!DOCTYPE html>
@@ -64,10 +81,21 @@ def display_skin_info_HTML(filename, start_img, end_img):
         f.write(html)
 
 
-# display_skin_info_HTML("test", 200, 205)
+def display_eye_info_HTML(filename:str, start_img:int, end_img:int) -> None:
+    """
+    This function generates an HTML file for the color-corrected images retrieved from the Chicago Database. 
+    The file will contain the images of the left eye, iris box, example of RGB value, along with their corresponding Lab values and RGB value. 
+    The images will be arranged in ascending order based on the iris box L value.
 
-
-def display_eye_info_HTML(filename, start_img, end_img):
+    Parameters:
+    ----------
+    filename : str
+        Name of HTML file you want to create and write to 
+    start_img : int
+        The index of the first image to be processed.
+    end_img : int 
+        The index of the last image to be processed (not including)
+    """
     # Create an HTML template for displaying the images
     html_template = """
     <!DOCTYPE html>
@@ -137,11 +165,25 @@ def display_eye_info_HTML(filename, start_img, end_img):
         f.write(html)
 
 
+<<<<<<< HEAD
+def display_hair_info_HTML(filename:str, start_img:int, end_img:int) -> None:
+    """
+    This function generates an HTML file for the color-corrected images retrieved from the Chicago Database. 
+    The file will contain the original image, hair image, 3 examples boxes of the top 3 RGB values, along with their corresponding Lab values and top 3 RGB values. 
+    The images will be arranged in ascending order based on the hair image L value.
+=======
 # display_eye_info_HTML("test", 210, 230)
+>>>>>>> main
 
-
-# Going through color correcting images and ording hair info
-def display_hair_info_HTML(filename, start_img, end_img):
+    Parameters:
+    ----------
+    filename : str
+        Name of HTML file you want to create and write to 
+    start_img : int
+        The index of the first image to be processed.
+    end_img : int 
+        The index of the last image to be processed (not including)
+    """
     # Create an HTML template for displaying the images
     html_template = """
     <!DOCTYPE html>
@@ -251,14 +293,33 @@ def display_hair_info_HTML(filename, start_img, end_img):
         f.write(html)
 
 
+<<<<<<< HEAD
+def display_all_features_HTML(img_str: str, counter: int, ours: bool, color_correct: bool, in_BGR: int) -> List[str]:
+    """
+    This function generates the rows for a single image that will appear in the HTML file containing all feature information.
+    What is displayed on the HTML file: Original image, forehead, left cheek, right cheek images, skin Lab value, 
+    left eye, right eye, left eye iris box, example of RGB value, eye Lab values, eye RGB value,
+    hair image, 3 examples boxes of the top 3 RGB values, hair Lab value and top 3 RGB values. 
+=======
 # display_hair_info_HTML("test", 215, 220)
+>>>>>>> main
 
+    Parameters:
+    ----------
+    img_str : str
+        String representing the file of the image
+    ours : bool
+        True - if the image comes from the images we took, False - if comes from Chicago Database
+    color_correct : bool
+        True - if the image needs to be color corrected
+    in_BGR : int
+        A flag indicating indicate whether the incoming mask is in BGR format
 
-# -----------------------------------------------------------------------------
-# THESE FUNCTIONS ARE USED TO DISPLAY ALL THE FEATURES AND VALUES ON A "TEST" HTML PAGE
-
-
-def display_all_features_HTML(img_str, counter, ours, color_correct, in_BGR):
+    Returns:
+    ----------
+    rows : List[str]
+        The rows HTML code needed to create the HTML file
+    """
     rows = []
     data = facial_features.facial_features_and_values(
         img_str, ours, color_correct, in_BGR
@@ -369,8 +430,33 @@ def display_all_features_HTML(img_str, counter, ours, color_correct, in_BGR):
 
 
 def create_HTML_file_all_features_specific_our_photos(
-    filename, foldername, img_list, ours=True, color_correct=True, in_BGR=1
-):
+    filename: str, foldername: str, img_list: List[str], ours=True, color_correct=True, in_BGR=1
+) -> None:
+    """
+    This function generates an HTML file from images in the specified folded from the photos we took.
+    The file will contain all of the information from the function display_all_features_HTML for each image and append all information to the same HTML file
+
+    Parameters:
+    ----------
+    filename : str
+        Name of HTML file you want to create and write to 
+    foldername : str
+        Desired folder the images will be in
+    img_list: List[str]
+        List of strings representing the file of the image
+    ours : bool
+        True - if the image comes from the images we took, False - if comes from Chicago Database
+    color_correct : bool
+        True - if the image needs to be color corrected
+    in_BGR : int
+        A flag indicating indicate whether the incoming mask is in BGR format
+
+    Returns:
+    ----------
+    rows : List[str]
+        The rows HTML code needed to create the HTML file
+    """
+
     # Create an HTML template for displaying the images
     html_template = """
     <!DOCTYPE html>
@@ -407,8 +493,24 @@ def create_HTML_file_all_features_specific_our_photos(
 
 
 def create_HTML_file_all_features_specific(
-    filename, img_str, ours=False, color_correct=True
-):
+    filename: str, img_str: str, ours: bool=False, color_correct: bool=True
+) -> None:
+    """
+    This function generates an HTML file from a selected image in the Chicago Database photos
+    The file will contain all of the information from the function display_all_features_HTML for the image in an HTML file
+
+    Parameters:
+    ----------
+    filename : str
+        Name of HTML file you want to create and write to 
+    img_str
+        Strings representing the file of the image
+    ours : bool
+        True - if the image comes from the images we took, False - if comes from Chicago Database
+    color_correct : bool
+        True - if the image needs to be color corrected
+    """
+
     # Create an HTML template for displaying the images
     html_template = """
     <!DOCTYPE html>
@@ -440,8 +542,25 @@ def create_HTML_file_all_features_specific(
 
 
 def create_HTML_file_all_features(
-    filename, start_img, end_img, ours=False, color_correct=True
-):
+    filename: str, start_img: int, end_img: int, ours: bool=False, color_correct: bool=True
+) -> None:
+    """
+    This function generates an HTML file from images in the specified folded from the Chicago Database
+    The file will contain all of the information from the function display_all_features_HTML for each image and append all information to the same HTML file
+
+    Parameters:
+    ----------
+    filename : str
+        Name of HTML file you want to create and write to 
+    start_img : int
+        The index of the first image to be processed.
+    end_img : int 
+        The index of the last image to be processed (not including)  
+    ours : bool
+        True - if the image comes from the images we took, False - if comes from Chicago Database
+    color_correct : bool
+        True - if the image needs to be color corrected
+    """
     # Create an HTML template for displaying the images
     html_template = """
     <!DOCTYPE html>
@@ -491,10 +610,39 @@ def create_HTML_file_all_features(
         f.write(html)
 
 
-# imgage_str = "ColorCorrectedImages/CCF35.jpg"
-# display_all_features_HTML("./test", 0, 5)
+
+# Test that these function work 
+"""
+directory_name = "test_HTML_files/"
+if not os.path.exists(directory_name):
+    os.makedirs(directory_name)
+
+<<<<<<< HEAD
+display_skin_info_HTML(directory_name + "test_skin_chicago", 0, 1)
+display_eye_info_HTML(directory_name + "test_eyes_chicago", 0, 1)
+display_hair_info_HTML(directory_name + "test_hair_chicago", 0, 1)
 
 
+# Use this function to look through all the images in OurPhotos
+img_list = ["DSC06469.JPG", "DSC06471.JPG", "DSC06473.JPG", "DSC06474.JPG","DSC06477.JPG",
+           "DSC06479.JPG", "DSC06481.JPG", "DSC06483.JPG", "DSC06484.JPG", "DSC06488.JPG",
+            "DSC06489.JPG", "DSC06491.JPG", "DSC06494.JPG"]
+create_HTML_file_all_features_specific_our_photos(directory_name + "test_our_photos", "OurPhotos/", img_list[0:1], True)
+
+
+img_str = "OurPhotos/DSC06469.JPG"
+create_HTML_file_all_features_specific(directory_name + "test_our_photo_specific", img_str,  1)
+
+
+# HTML filename, start img #, end img #, color_correct True or False
+create_HTML_file_all_features(directory_name + "test_chicago_photos", 0, 1)
+"""
+
+
+
+
+
+=======
 # Use this function to look through the images in the ChicagoFaceDatabaseImages start-end
 # HTML filename, start img #, end img #, color_correct True or False
 # create_HTML_file_all_features("test", 0, 2)
@@ -511,3 +659,4 @@ def create_HTML_file_all_features(
 #            "DSC06479.JPG", "DSC06481.JPG", "DSC06483.JPG", "DSC06484.JPG", "DSC06488.JPG",
 #             "DSC06489.JPG", "DSC06491.JPG", "DSC06494.JPG"]
 # create_HTML_file_all_features_specific_our_photos("test_ours", "OurPhotos/", img_list, True)
+>>>>>>> main
