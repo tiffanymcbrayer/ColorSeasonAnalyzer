@@ -166,35 +166,20 @@ def display_hair_info_HTML(filename, start_img, end_img):
         cc_image = cv2.imread(image)
 
         f = facial_features.detect_facial_landmarks(cc_image)
-<<<<<<< HEAD
-        imgArr = [f[3], f[4], f[5]]
-        l_avg, a_avg, b_avg = facial_features.total_under_tone(imgArr)
+        img_arr = [f[3], f[4], f[5]]
+        l_avg, a_avg, b_avg = facial_features.total_under_tone(img_arr)
         """
         threshold_value = 70 # 100
         mask = facial_features.get_hair_mask(cc_image, threshold_value)
 
         l_hair, a_hair, b_hair = facial_features.get_lab_color_space(mask)
         if l_hair > 50:
-=======
-        img_arr = [f[3], f[4], f[5]]
-        l_avg, a_avg, b_avg = facial_features.total_under_tone(img_arr)
-
-        threshold_value = 100
-        mask = facial_features.get_hair_mask(cc_image, threshold_value)
-
-        l_hair, a_hair, b_hair = facial_features.get_lab_color_space(mask)
-        if l_hair > 70:
->>>>>>> main
             # REDO THE HAIR MASK!! - was at 190
             threshold_value = 120
             mask = facial_features.get_hair_mask(cc_image, threshold_value)
             l_hair, a_hair, b_hair = facial_features.get_lab_color_space(mask)
 
-<<<<<<< HEAD
-        top3colors = facial_features.get_top_color(
-=======
         top_3_colors = facial_features.get_top_color(
->>>>>>> main
             mask, num_colors=3, value_threshold=25, in_BGR=1
         )
         """
@@ -260,7 +245,7 @@ def display_hair_info_HTML(filename, start_img, end_img):
         f.write(html)
 
 
-display_hair_info_HTML("test", 215, 226)
+#display_hair_info_HTML("test", 215, 220)
 
 
 # -----------------------------------------------------------------------------
@@ -378,11 +363,7 @@ def display_all_features_HTML(img_str, counter, ours, color_correct, in_BGR):
 
 
 def create_HTML_file_all_features_specific_our_photos(
-<<<<<<< HEAD
-    filename, foldername, imgList, ours=True, color_correct=True, in_BGR=1
-=======
     filename, foldername, img_list, ours=True, color_correct=True, in_BGR=1
->>>>>>> main
 ):
     # Create an HTML template for displaying the images
     html_template = """
@@ -521,10 +502,7 @@ def create_HTML_file_all_features(
 
 
 # Use this function to look through all the images in OurPhotos
-# img_list = ["DSC06469.JPG", "DSC06471.JPG", "DSC06473.JPG", "DSC06474.JPG","DSC06477.JPG",
-#            "DSC06479.JPG", "DSC06481.JPG", "DSC06483.JPG", "DSC06484.JPG", "DSC06488.JPG",
-#             "DSC06489.JPG", "DSC06491.JPG", "DSC06494.JPG"]
-# # img_list = ["DSC06471.JPG","DSC06473.JPG","DSC06474.JPG","DSC06477.JPG","DSC06479.JPG","DSC06481.JPG",
-# #            "DSC06483.JPG","DSC06484.JPG","DSC06488.JPG","DSC06489.JPG","DSC06491.JPG","DSC06494.JPG"]
-# # img_list = ["DSC06473.JPG", "DSC06474.JPG", "DSC06481.JPG"]
-# create_HTML_file_all_features_specific_our_photos("test_ours", "OurPhotos/", img_list, True)
+img_list = ["DSC06469.JPG", "DSC06471.JPG", "DSC06473.JPG", "DSC06474.JPG","DSC06477.JPG",
+           "DSC06479.JPG", "DSC06481.JPG", "DSC06483.JPG", "DSC06484.JPG", "DSC06488.JPG",
+            "DSC06489.JPG", "DSC06491.JPG", "DSC06494.JPG"]
+create_HTML_file_all_features_specific_our_photos("test_ours", "OurPhotos/", img_list, True)

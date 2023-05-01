@@ -554,7 +554,7 @@ def get_top_color(mask: np.ndarray, num_colors: int=3, value_threshold: int=25, 
 
 
 
-def get_hair_mask(image:np.ndarray, threshold_value: int) -> np.ndarray:
+def get_hair_mask(image: np.ndarray, threshold_value: int) -> np.ndarray:
     """
     This function has two parts. 
     Part (1) this function takes in an image and a threshold value - it detects faces in the image using 
@@ -642,10 +642,10 @@ def get_hair_mask(image:np.ndarray, threshold_value: int) -> np.ndarray:
         forehead_points = np.vstack([forehead_points, [0, 0]])
         forehead_points = np.vstack([forehead_points, [0, landmarks.part(75).y]])
 
-        hair_points = [75, 76, 68, 69, 70]
-        hairline_points = np.array(
-            [(landmarks.part(i).y, landmarks.part(i).x) for i in [72, 73, 79, 74]]
-        )
+        # hair_points = [75, 76, 68, 69, 70]
+        # hairline_points = np.array(
+        #     [(landmarks.part(i).y, landmarks.part(i).x) for i in [72, 73, 79, 74]]
+        # )
 
         mask = np.zeros(image.shape[:2], dtype=np.uint8)
         cv2.drawContours(mask, [forehead_points], -1, 255, -1, cv2.LINE_AA)
@@ -658,8 +658,8 @@ def get_hair_mask(image:np.ndarray, threshold_value: int) -> np.ndarray:
         # Crop the image to the masked part
         x, y, w, h = cv2.boundingRect(mask)
         cropped_image = masked_image[y : y + h, x : x + w]
-    # ---------------------------------------------------
 
+    # ---------------------------------------------------
     img = cropped_image
 
     # Convert the image to grayscale
@@ -694,7 +694,7 @@ def get_hair_mask(image:np.ndarray, threshold_value: int) -> np.ndarray:
 
     return result
 
-def get_hair_values(hair_image: np.ndarray, in_BGR: int) -> Tuple:
+def get_hair_values(image: np.ndarray, in_BGR: int) -> Tuple:
     """
     This function takes in a hair image and returns a tuple containing the top 3 colors in the hair, as well as the Lab values of the hair, 
     and a hair mask created using a threshold value of 70. If the L value of the hair is greater than 50 (if the hair has high brightness) 
@@ -703,7 +703,7 @@ def get_hair_values(hair_image: np.ndarray, in_BGR: int) -> Tuple:
     
     Parameters:
     ----------
-    hair_image: np.ndarray
+    image: np.ndarray
         A 3-dimensional NumPy array representing an RGB image.
     in_BGR : int 
         A flag indicating indicate whether the incoming mask is in BGR format
@@ -724,7 +724,7 @@ def get_hair_values(hair_image: np.ndarray, in_BGR: int) -> Tuple:
 
     # Initial threshold value
     threshold_value = 70
-    hair_image = get_hair_mask(hair_image, threshold_value)
+    hair_image = get_hair_mask(image, threshold_value)
 
     # Get the Lab color value
     l_hair, a_hair, b_hair = get_lab_color_space(hair_image)
@@ -732,7 +732,7 @@ def get_hair_values(hair_image: np.ndarray, in_BGR: int) -> Tuple:
     # If the brightness of the hair is greater than 50, redo the hair mask with a greater threshold
     if l_hair > 50:
         threshold_value = 120
-        hair_image = get_hair_mask(hair_image, threshold_value)
+        hair_image = get_hair_mask(image, threshold_value)
         l_hair, a_hair, b_hair = get_lab_color_space(hair_image)
 
     # Compute the top 3 colors in the hair
