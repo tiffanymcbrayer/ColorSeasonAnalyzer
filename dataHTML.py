@@ -124,7 +124,7 @@ def display_eye_info_HTML(filename, start_img, end_img):
         img_str = base64.b64encode(buffer).decode("utf-8")
         rows.append(f'<td><img src="data:image/jpeg;base64,{img_str}"></td>')
 
-        rows.append(f"<td>(L,a,b) = ({ar[1]:.2f}, {ar[2]}, {ar[3]})</td>")
+        rows.append(f"<td>(L,a,b) = ({ar[1]:.2f}, {ar[2]:.2f}, {ar[3]:.2f})</td>")
 
         bgr_val = ar[0]
         rows.append(f"<td>(R,G,B) = ({bgr_val[2]},{bgr_val[1]},{bgr_val[0]})</td>")
@@ -137,7 +137,7 @@ def display_eye_info_HTML(filename, start_img, end_img):
         f.write(html)
 
 
-# display_eye_info_HTML("test", 215, 221)
+#display_eye_info_HTML("test", 210, 230)
 
 
 # Going through color correcting images and ording hair info
@@ -168,12 +168,12 @@ def display_hair_info_HTML(filename, start_img, end_img):
         f = facial_features.detect_facial_landmarks(cc_image)
         img_arr = [f[3], f[4], f[5]]
         l_avg, a_avg, b_avg = facial_features.total_under_tone(img_arr)
-
-        threshold_value = 100
+        """
+        threshold_value = 70 # 100
         mask = facial_features.get_hair_mask(cc_image, threshold_value)
 
         l_hair, a_hair, b_hair = facial_features.get_lab_color_space(mask)
-        if l_hair > 70:
+        if l_hair > 50:
             # REDO THE HAIR MASK!! - was at 190
             threshold_value = 120
             mask = facial_features.get_hair_mask(cc_image, threshold_value)
@@ -182,13 +182,15 @@ def display_hair_info_HTML(filename, start_img, end_img):
         top_3_colors = facial_features.get_top_color(
             mask, num_colors=3, value_threshold=25, in_BGR=1
         )
+        """
+        top_3_colors, l_hair, a_hair, b_hair, hair_mask = facial_features.get_hair_values(cc_image, in_BGR=1)
 
         # Lab values,
         data.append(
             (
                 (l_avg, a_avg, b_avg),
                 cc_image,
-                mask,
+                hair_mask,
                 (l_hair, a_hair, b_hair),
                 top_3_colors,
             )
@@ -213,7 +215,7 @@ def display_hair_info_HTML(filename, start_img, end_img):
         _, buffer = cv2.imencode(".jpg", img)
         img_str = base64.b64encode(buffer).decode("utf-8")
         rows.append(
-            f'<td><img src="data:image/jpeg;base64,{img_str}" width="{img.shape[1]//2}" height="{img.shape[0]//2}"></td>'
+            f'<td><img src="data:image/jpeg;base64,{img_str}" width="{img.shape[1]//4}" height="{img.shape[0]//4}"></td>'
         )
 
         for i in range(0, 3):
@@ -243,8 +245,7 @@ def display_hair_info_HTML(filename, start_img, end_img):
         f.write(html)
 
 
-# display_hair_info_HTML("test", 215, 221)
-# display_hair_info_HTML("test", 60, 66)
+#display_hair_info_HTML("test", 215, 220)
 
 
 # -----------------------------------------------------------------------------
@@ -490,7 +491,7 @@ def create_HTML_file_all_features(
 
 # Use this function to look through the images in the ChicagoFaceDatabaseImages start-end
 # HTML filename, start img #, end img #, color_correct True or False
-# create_HTML_file_all_features("test", 220, 230)
+#create_HTML_file_all_features("test", 0, 2)
 
 
 
@@ -501,10 +502,7 @@ def create_HTML_file_all_features(
 
 
 # Use this function to look through all the images in OurPhotos
-# img_list = ["DSC06469.JPG", "DSC06471.JPG", "DSC06473.JPG", "DSC06474.JPG","DSC06477.JPG",
-#            "DSC06479.JPG", "DSC06481.JPG", "DSC06483.JPG", "DSC06484.JPG", "DSC06488.JPG",
-#             "DSC06489.JPG", "DSC06491.JPG", "DSC06494.JPG"]
-# # img_list = ["DSC06471.JPG","DSC06473.JPG","DSC06474.JPG","DSC06477.JPG","DSC06479.JPG","DSC06481.JPG",
-# #            "DSC06483.JPG","DSC06484.JPG","DSC06488.JPG","DSC06489.JPG","DSC06491.JPG","DSC06494.JPG"]
-# # img_list = ["DSC06473.JPG", "DSC06474.JPG", "DSC06481.JPG"]
-# create_HTML_file_all_features_specific_our_photos("test_ours", "OurPhotos/", img_list, True)
+img_list = ["DSC06469.JPG", "DSC06471.JPG", "DSC06473.JPG", "DSC06474.JPG","DSC06477.JPG",
+           "DSC06479.JPG", "DSC06481.JPG", "DSC06483.JPG", "DSC06484.JPG", "DSC06488.JPG",
+            "DSC06489.JPG", "DSC06491.JPG", "DSC06494.JPG"]
+create_HTML_file_all_features_specific_our_photos("test_ours", "OurPhotos/", img_list, True)
