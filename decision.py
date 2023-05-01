@@ -89,18 +89,26 @@ def read_data(r=True):
         patterns = np.array([x[0] for x in zipped_lists])
         targets = np.array([x[1] for x in zipped_lists])
 
-    training_set = patterns[: int(0.98 * len(targets))]
-    testing_set = patterns[int(0.98 * len(targets)) :]
-    training_targets = targets[: int(0.98 * len(targets))]
-    testing_targets = targets[int(0.98 * len(targets)) :]
+    # training_set = patterns[: int(0.98 * len(targets))]
+    # testing_set = patterns[int(0.98 * len(targets)) :]
+    # training_targets = targets[: int(0.98 * len(targets))]
+    # testing_targets = targets[int(0.98 * len(targets)) :]
+    training_set = patterns
+    # testing_set = patterns[int(0.98 * len(targets)) :]
+    training_targets = targets
+    # testing_targets = targets[int(0.98 * len(targets)) :]
+    
 
     train_data = np.array(training_set)
     train_targets = np.array(training_targets)
     train_targets = to_categorical(train_targets)
 
-    test_data = np.array(testing_set)
-    test_targets = np.array(testing_targets)
-    test_targets = to_categorical(test_targets)
+    # test_data = np.array(testing_set)
+    # test_targets = np.array(testing_targets)
+    # test_targets = to_categorical(test_targets)
+    test_targets = []
+    test_data = []
+    
 
     train_data2 = []
     test_data2 = []
@@ -108,10 +116,10 @@ def read_data(r=True):
         d = [eval(i) for i in item]
         train_data2.append(d)
     train_data = np.array(train_data2)
-    for item in test_data:
-        d = [eval(i) for i in item]
-        test_data2.append(d)
-    test_data = np.array(test_data2)
+    # for item in test_data:
+    #     d = [eval(i) for i in item]
+    #     test_data2.append(d)
+    # test_data = np.array(test_data2)
 
     f.close()
     f2.close()
@@ -220,7 +228,9 @@ def get_training_data(predict_data=None):
     """
     
     train_data, train_targets, test_data, test_targets = read_data()
-    our_patterns, our_targets = read_our_data()
+    # our_patterns, our_targets = read_our_data() temp?
+    test_data, test_targets = read_our_data()
+ 
     # our_patterns, our_targets = augment_data(our_patterns, our_targets)
     train_data, train_targets = augment_data(train_data, train_targets)
     # train_data = np.concatenate((train_data, our_patterns), axis=0)
@@ -287,6 +297,8 @@ def nn(e=150, file="predict_season.h5"):
         monitor="val_loss", patience=10, restore_best_weights=True
     )
 
+    print(train_data.shape, test_data.shape)
+    
     history = network.fit(
         train_data,
         train_targets,
@@ -296,10 +308,12 @@ def nn(e=150, file="predict_season.h5"):
         validation_split=0.2,
         callbacks=[early_stopping],
     )
-    # print("training_data_eval:")
-    # network.evaluate(train_data, train_targets)
-    # print("testing_data_eval")
-    # network.evaluate(test_data, test_targets)
+    print("db_eval:")
+    db_data, db_targets = read_data()[0:2]
+    db_data = get_training_data(db_data)[4]
+    network.evaluate(db_data, db_targets)
+    print("our_eval")
+    network.evaluate(test_data, test_targets)
     network.save(file)
     return history, network
 
