@@ -172,8 +172,6 @@ def upload_photo():
 
         img_path = session.get("uploaded_img_file_path", None)
 
-        imgList = [img_filename]
-
         data = facial_features.facial_features_and_values(
             f"static/images/{img_filename}", True, True, 1
         )
