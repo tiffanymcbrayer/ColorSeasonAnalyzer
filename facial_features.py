@@ -215,7 +215,7 @@ def find_iris(eye_mask: np.ndarray) -> List[float]:
 
 
 
-def get_lab_color_space(img: np.ndarray) -> List[int]:
+def get_lab_color_space(img: np.ndarray) -> Tuple[float]:
     """
     This function takes an RGB image as input and converts it to the LAB color space. 
     It then extracts the L, a, and b channels of the LAB image and calculates the average values of the a and b channels, 
@@ -228,7 +228,7 @@ def get_lab_color_space(img: np.ndarray) -> List[int]:
     
     Returns:
     -------
-    lab_avg : Tuple[int]
+    lab_avg : Tuple[float]
         Tuple of the average L, a, and b values
     """
 
@@ -256,7 +256,7 @@ def get_lab_color_space(img: np.ndarray) -> List[int]:
 
 # Return the undertone using the 3 swatches - left cheek, right cheek, and forehead
 # higher a* value would indicate a cooler or pinker undertone, while a lower a* value would indicate a warmer or yellower undertone.
-def total_under_tone(img_arr: List[np.ndarray]) -> Tuple[int]:
+def total_under_tone(img_arr: List[np.ndarray]) -> Tuple[float]:
     """
     This function calculates the undertone of an image by taking three image swatches (left cheek, right cheek, and forehead) 
     and calculating the average LAB color values of each swatch. It then returns the average LAB values as a tuple.
@@ -268,7 +268,7 @@ def total_under_tone(img_arr: List[np.ndarray]) -> Tuple[int]:
     
     Returns:
     -------
-    lab_avg : Tuple[int]
+    lab_avg : Tuple[float]
         Tuple of the average L, a, and b values
     """
     l_tot = 0
@@ -696,14 +696,14 @@ def get_hair_mask(image: np.ndarray, threshold_value: int) -> np.ndarray:
 
 def get_hair_values(image: np.ndarray, in_BGR: int) -> Tuple:
     """
-    This function takes in a hair image and returns a tuple containing the top 3 colors in the hair, as well as the Lab values of the hair, 
+    This function takes in an image and returns a tuple containing the top 3 colors in the hair, as well as the Lab values of the hair, 
     and a hair mask created using a threshold value of 70. If the L value of the hair is greater than 50 (if the hair has high brightness) 
     the threshold value is increased to 120 and the hair mask and Lab values are recalculated before computing the top 3 color values of the hair.
     If the image is in BGR than in_BGR = 1 and get_top_color will flip the order of the color tuples.
     
     Parameters:
     ----------
-    image: np.ndarray
+    hair_image: np.ndarray
         A 3-dimensional NumPy array representing an RGB image.
     in_BGR : int 
         A flag indicating indicate whether the incoming mask is in BGR format
