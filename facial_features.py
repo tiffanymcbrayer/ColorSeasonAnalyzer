@@ -1,12 +1,10 @@
 import dlib
 import cv2
-import sys
 import numpy as np
 import glob
 from PIL import Image
 import color_corrector
 import matplotlib.pyplot as plt
-import rawpy
 import get_background
 
 import typing as npt
